@@ -331,16 +331,23 @@ async function boot() {
 }
 boot();
 
+let goodSrc = defaultCtrl;              // last controller known to run
+function showErr(msg, ok) {
+  $('pyerr').textContent = ok ? '✓ applied' : String(msg).split('\n').filter(l => l.trim()).slice(-1)[0];
+  $('pyerr').className = ok ? 'pyerr ok' : 'pyerr';
+}
 function applyCode() {
   const code = $('pycode').value;
   try {
+    py.runPython("try:\n    del controller\nexcept NameError:\n    pass\n");
     py.runPython(code);
-    if (typeof py.globals.get('controller') !== 'function') throw new Error('controller() not defined');
-    $('pyerr').textContent = '✓ applied';
-    $('pyerr').className = 'pyerr ok';
+    if (!py.runPython("'controller' in globals() and callable(controller)"))
+      throw new Error('your code must define controller(state, err, p)');
+    goodSrc = code;
+    showErr(null, true);
   } catch (err) {
-    $('pyerr').textContent = String(err.message || err).split('\n').filter(l => l.trim()).slice(-1)[0];
-    $('pyerr').className = 'pyerr';
+    py.runPython(goodSrc);              // roll back to the last working controller
+    showErr(err.message || err, false);
   }
 }
 $('btnApply').onclick = () => ready && applyCode();
@@ -440,7 +447,17 @@ function frame(now) {
   const dtReal = Math.min(0.05, (now - last) / 1000); last = now;
   if (running && ready && track) {
     const sub = 3 * speedMul;
-    const proxy = sim.step(sub, dtReal / 3);
+    let proxy;
+    try {
+      proxy = sim.step(sub, dtReal / 3);
+    } catch (err) {                      // user controller blew up mid-drive
+      running = false; $('btnRun').textContent = '▶ Start';
+      st.status.textContent = 'Controller error';
+      showErr(err.message || err, false);
+      try { py.runPython(goodSrc); $('pycode').value = goodSrc; } catch (e) {}
+      sim.reset(); trail = []; car = readState();
+      render(); requestAnimationFrame(frame); return;
+    }
     const r = proxy.toJs();
     proxy.destroy();
     car = { x: r[0], y: r[1], phi: r[2], v: r[3], theta: r[4] };
