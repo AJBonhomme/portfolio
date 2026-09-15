@@ -105,8 +105,10 @@ boot();
 
 let goodSrc = defaultCtrl;   // last controller that actually drove a frame
 let pendingSrc = null;       // applied, but not yet proven at runtime
+// Python tracebacks are multi-line; the last non-empty line is the useful bit.
+const lastLine = m => String(m).split('\n').filter(l => l.trim()).slice(-1)[0] || String(m);
 function showErr(msg, ok) {
-  $('pyerr').textContent = ok ? '✓ applied' : String(msg).split('\n').filter(l => l.trim()).slice(-1)[0];
+  $('pyerr').textContent = ok ? '✓ applied' : msg;
   $('pyerr').className = ok ? 'pyerr ok' : 'pyerr';
 }
 function applyCode() {
@@ -121,7 +123,7 @@ function applyCode() {
   } catch (err) {
     py.runPython(goodSrc);   // roll back to the last working controller
     pendingSrc = null;
-    showErr(err.message || err, false);
+    showErr(lastLine(err.message || err), false);
   }
 }
 $('btnApply').onclick = () => ready && applyCode();
@@ -230,7 +232,7 @@ function frame(now) {
       // keep the user's code in the editor so they can fix it, but drive with the last good one
       try { py.runPython(goodSrc); } catch (e) {}
       pendingSrc = null;
-      showErr((err.message || err) + ' — rolled back to last working controller', false);
+      showErr(lastLine(err.message || err) + ' — rolled back to last working controller', false);
       sim.reset(); trail = []; car = readState();
       render(); requestAnimationFrame(frame); return;
     }
