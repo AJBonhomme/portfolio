@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antoine Bonhomme — Racetrack Lab</title>
+<meta name="description" content="Draw a racetrack with your mouse and watch a car driven by a live Python path-following controller try to lap it.">
+<meta property="og:title" content="Antoine Bonhomme — Racetrack Lab">
+<meta property="og:description" content="Draw a racetrack with your mouse and watch a car driven by a live Python path-following controller try to lap it.">
+<meta property="og:image" content="/img/feb_autonomous-4bce310200-cover.jpg">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="layout">
+<aside class="side">
+<a class="name" href="/">Antoine Bonhomme</a>
+<span class="tag">Mechanical Engineering @ UC Berkeley</span>
+<nav>
+<a href="/about">About Me</a>
+<a href="/">Work</a>
+<a href="/racetrack" class=active>Racetrack Lab</a>
+<a href="/contact">Contact</a>
+<button class="mtoggle" type="button" onclick="this.parentNode.classList.toggle('open')">Projects</button>
+<div class="plist"><div class="label">Work</div>
+<a href="/feb-differential-mount">FEB Differential Mount</a><a href="/feb-path-following-controller">FEB Path-Following Controller</a><a href="/seebyte-hovering-auv">SeeByte Hovering AUV Retrofit</a><a href="/mesafsd-autonomous-go-kart">MesaFSD Autonomous Go-Kart</a><a href="/derconnect-microgrid-research">DERConnect Microgrid Research</a><a href="/derconnect-microgrid-pcb">Decentralized Microgrid PCB</a><a href="/off-road-go-kart">Off-Road Go-Kart Build</a><a href="/obstacle-avoiding-rc-car">Obstacle-Avoiding RC Car (v3)</a><a href="/rc-car-iterations">RC Car v0 – v2</a><a href="/handheld-distance-finder">Handheld Distance Finder</a>
+</div>
+</nav>
+<div class="foot"><a href="https://docs.google.com/document/d/1bYhJqDFZi9Dlk61fPpLYqg_OwdbEA28v_bysWaAPR18/edit?usp=sharing" target="_blank" rel="noopener">Resume ↗</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/antoine-bonhomme-5b210a320/" target="_blank" rel="noopener">LinkedIn ↗</a></div>
+</aside>
+<main class="main" id="top">
+<article class="lab">
+<h1>Racetrack Lab</h1>
+<p class="sub">Draw a track. A Python controller drives it. · Experimental</p>
+<div class="intro"><p>Drag your mouse (or finger) on the canvas to sketch a closed loop. The sketch becomes a cone-lined track, and a car running a <em>real Python</em> path-following controller — the same kinematic bicycle model, heading-error and lateral-error feedback I built for Formula Electric at Berkeley — tries to lap it as fast as it can. The Python runs right in your browser via Pyodide; edit it below and hit Apply.</p></div>
+
+<div class="labwrap">
+  <div class="canvasbox">
+    <canvas id="track" width="1000" height="600"></canvas>
+    <div id="hint" class="hint">Draw a loop to begin</div>
+  </div>
+  <div class="toolbar">
+    <button id="btnRun" class="btn primary" disabled>▶ Start</button>
+    <button id="btnReset" class="btn" disabled>Reset car</button>
+    <button id="btnClear" class="btn">Clear track</button>
+    <button id="btnSample" class="btn">Sample track</button>
+    <span class="grow"></span>
+    <label class="slider">Track width <input id="width" type="range" min="18" max="50" value="30"><span id="widthv">30</span></label>
+    <label class="slider">Speed ×<input id="speed" type="range" min="1" max="4" value="1" step="1"><span id="speedv">1</span></label>
+  </div>
+  <div class="stats">
+    <div><span>Status</span><b id="stStatus">Loading Python…</b></div>
+    <div><span>Lap</span><b id="stLap">–</b></div>
+    <div><span>Lap time</span><b id="stTime">0.00 s</b></div>
+    <div><span>Best</span><b id="stBest">–</b></div>
+    <div><span>Speed</span><b id="stSpeed">0</b></div>
+    <div><span>Lateral err</span><b id="stLat">0.0 px</b></div>
+    <div><span>Heading err</span><b id="stHead">0.0°</b></div>
+    <div><span>Off-track</span><b id="stOff">0</b></div>
+  </div>
+
+  <div class="tuning">
+    <div class="tune"><label><span class="n">K<sub>heading</sub></span> <span id="K_hv">2.4</span></label><input data-p="K_h" type="range" min="0" max="6" step="0.1" value="2.4"></div>
+    <div class="tune"><label><span class="n">K<sub>lateral</sub></span> <span id="K_lv">0.035</span></label><input data-p="K_l" type="range" min="0" max="0.12" step="0.005" value="0.035"></div>
+    <div class="tune"><label><span class="n">K<sub>steer</sub></span> <span id="K_sv">9</span></label><input data-p="K_s" type="range" min="1" max="20" step="0.5" value="9"></div>
+    <div class="tune"><label><span class="n">v<sub>max</sub></span> <span id="v_maxv">190</span></label><input data-p="v_max" type="range" min="40" max="400" step="10" value="190"></div>
+    <div class="tune"><label><span class="n">a<sub>lat</sub></span> <span id="a_latv">280</span></label><input data-p="a_lat" type="range" min="60" max="800" step="20" value="280"></div>
+    <div class="tune"><label><span class="n">Lookahead</span> <span id="lookaheadv">16</span></label><input data-p="lookahead" type="range" min="4" max="60" step="2" value="16"></div>
+  </div>
+
+  <details class="code" open>
+    <summary>controller.py — edit the Python that drives the car</summary>
+    <textarea id="pycode" spellcheck="false"></textarea>
+    <div class="codebar">
+      <button id="btnApply" class="btn primary">Apply code</button>
+      <button id="btnRevert" class="btn">Revert to default</button>
+      <span id="pyerr" class="pyerr"></span>
+    </div>
+    <p class="note">The full simulator source (vehicle model, error computation, lap logic) is in <a href="https://github.com/AJBonhomme/portfolio/blob/main/src/lab_sim.py" target="_blank">lab_sim.py</a>. Only <code>controller()</code> is swapped in when you apply.</p>
+  </details>
+</div>
+</article>
+
+<script id="labsim" type="text/x-python"># Autonomous racetrack simulator — runs in the browser via Pyodide.
+# Vehicle: kinematic bicycle model. State = [x, y, phi (heading), v, theta (steer angle)].
+# Controls  = [a (accel), theta_dot (steer rate)]. Units: pixels, seconds, radians.
+import math
+
+PARAMS = dict(
+    K_h=2.4,          # heading-error gain
+    K_l=0.035,        # lateral-error gain (rad per px)
+    K_s=9.0,          # steering-rate gain (rad/s per rad)
+    K_v=1.6,          # speed P gain
+    v_max=190.0,      # px/s
+    a_lat=280.0,      # max lateral accel budget for corner speed, px/s^2
+    a_max=140.0,      # accel limit, px/s^2
+    b_max=260.0,      # braking limit, px/s^2
+    L=22.0,           # wheelbase, px
+    theta_max=0.6,    # max steer angle, rad
+    thetadot_max=4.0, # max steer rate, rad/s
+    lookahead=16.0,   # px ahead for heading target (scaled by speed)
+    look_v=0.10,      # extra lookahead per px/s of speed
+    ahead_pts=28,     # points scanned ahead for corner curvature
+)
+
+
+def wrap(a):
+    return (a + math.pi) % (2 * math.pi) - math.pi
+
+
+def controller(state, err, p):
+    """USER-EDITABLE. Returns (a, theta_dot).
+    state: x, y, phi, v, theta
+    err:   e_head (rad, +ve = target is to the left in screen coords),
+           e_lat  (px, +ve = car is left of the centerline), kappa_ahead (1/px)
+    """
+    x, y, phi, v, theta = state
+    # Steering: point at the lookahead target, and pull back toward the centerline
+    theta_des = p['K_h'] * err['e_head'] - p['K_l'] * err['e_lat']
+    theta_des = max(-p['theta_max'], min(p['theta_max'], theta_des))
+    theta_dot = p['K_s'] * (theta_des - theta)
+    # Speed: slow down for the tightest corner coming up (v = sqrt(a_lat / kappa))
+    v_target = min(p['v_max'], math.sqrt(p['a_lat'] / max(err['kappa_ahead'], 1e-5)))
+    a = p['K_v'] * (v_target - v)
+    return a, theta_dot
+
+
+class Sim:
+    def __init__(self):
+        self.p = dict(PARAMS)
+        self.track = []
+        self.tan = []
+        self.kappa = []
+        self.n = 0
+        self.half_w = 30.0
+        self.state = [0.0, 0.0, 0.0, 0.0, 0.0]
+        self.idx = 0
+        self.laps = 0
+        self.lap_time = 0.0
+        self.best_lap = None
+        self.t = 0.0
+        self.off_track = 0
+        self.was_off = False
+        self.running = False
+        self.started = False
+
+    # ---- track -------------------------------------------------------------
+    def set_track(self, pts, half_w):
+        self.track = [(float(a), float(b)) for a, b in pts]
+        self.n = len(self.track)
+        self.half_w = float(half_w)
+        n = self.n
+        self.tan = []
+        self.kappa = []
+        for i in range(n):
+            x0, y0 = self.track[(i - 1) % n]
+            x1, y1 = self.track[(i + 1) % n]
+            dx, dy = x1 - x0, y1 - y0
+            d = math.hypot(dx, dy) or 1.0
+            self.tan.append((dx / d, dy / d))
+        for i in range(n):
+            t0 = self.tan[(i - 1) % n]
+            t1 = self.tan[(i + 1) % n]
+            dphi = wrap(math.atan2(t1[1], t1[0]) - math.atan2(t0[1], t0[0]))
+            x0, y0 = self.track[(i - 1) % n]
+            x1, y1 = self.track[(i + 1) % n]
+            ds = math.hypot(x1 - x0, y1 - y0) or 1.0
+            self.kappa.append(abs(dphi) / ds)
+        self.reset()
+
+    def reset(self):
+        if self.n:
+            x, y = self.track[0]
+            tx, ty = self.tan[0]
+            self.state = [x, y, math.atan2(ty, tx), 0.0, 0.0]
+        self.idx = 0
+        self.laps = 0
+        self.lap_time = 0.0
+        self.best_lap = None
+        self.t = 0.0
+        self.off_track = 0
+        self.was_off = False
+        self.started = False
+
+    def set_param(self, k, v):
+        self.p[k] = float(v)
+
+    def set_width(self, half_w):
+        self.half_w = float(half_w)
+
+    # ---- helpers -----------------------------------------------------------
+    def closest(self, x, y):
+        n = self.n
+        best, bi = 1e18, self.idx
+        # local window first (fast, avoids jumping across the track)
+        for k in range(-20, 41):
+            i = (self.idx + k) % n
+            px, py = self.track[i]
+            d = (px - x) ** 2 + (py - y) ** 2
+            if d < best:
+                best, bi = d, i
+        if best > (self.half_w * 4) ** 2:  # lost: global search
+            for i in range(n):
+                px, py = self.track[i]
+                d = (px - x) ** 2 + (py - y) ** 2
+                if d < best:
+                    best, bi = d, i
+        return bi
+
+    def errors(self, x, y, phi, v):
+        i = self.closest(x, y)
+        px, py = self.track[i]
+        tx, ty = self.tan[i]
+        e_lat = tx * (y - py) - ty * (x - px)          # signed cross product
+        look = self.p['lookahead'] + self.p['look_v'] * v
+        # walk forward along the centerline by `look` px
+        j, acc = i, 0.0
+        while acc < look:
+            k = (j + 1) % self.n
+            ax, ay = self.track[j]
+            bx, by = self.track[k]
+            acc += math.hypot(bx - ax, by - ay)
+            j = k
+            if j == i:
+                break
+        lx, ly = self.track[j]
+        e_head = wrap(math.atan2(ly - y, lx - x) - phi)
+        kap = 0.0
+        for k in range(int(self.p['ahead_pts'])):
+            kap = max(kap, self.kappa[(i + k) % self.n])
+        return i, dict(e_lat=e_lat, e_head=e_head, kappa_ahead=kap, look=(lx, ly))
+
+    # ---- integration --------------------------------------------------------
+    def step(self, n_sub, dt):
+        p = self.p
+        out = None
+        for _ in range(n_sub):
+            x, y, phi, v, theta = self.state
+            i, err = self.errors(x, y, phi, v)
+            a, thd = controller((x, y, phi, v, theta), err, p)
+            a = max(-p['b_max'], min(p['a_max'], a))
+            thd = max(-p['thetadot_max'], min(p['thetadot_max'], thd))
+            # integrate kinematic bicycle
+            x += v * math.cos(phi) * dt
+            y += v * math.sin(phi) * dt
+            phi = wrap(phi + (v / p['L']) * math.tan(theta) * dt)
+            v = max(0.0, v + a * dt)
+            theta = max(-p['theta_max'], min(p['theta_max'], theta + thd * dt))
+            self.state = [x, y, phi, v, theta]
+            # lap / progress bookkeeping
+            prev = self.idx
+            self.idx = i
+            self.t += dt
+            if self.started:
+                self.lap_time += dt
+            if prev > self.n * 0.85 and i < self.n * 0.15:
+                if self.started:
+                    self.laps += 1
+                    if self.best_lap is None or self.lap_time < self.best_lap:
+                        self.best_lap = self.lap_time
+                    self.lap_time = 0.0
+                self.started = True
+            elif not self.started and i > 2:
+                self.started = True
+                self.lap_time = 0.0
+            off = abs(err['e_lat']) > self.half_w
+            if off and not self.was_off:
+                self.off_track += 1
+            self.was_off = off
+            out = err
+        x, y, phi, v, theta = self.state
+        return [x, y, phi, v, theta, out['e_lat'], out['e_head'], self.idx, self.laps,
+                self.lap_time, self.best_lap if self.best_lap is not None else -1.0,
+                self.off_track, out['look'][0], out['look'][1], out['kappa_ahead']]
+
+
+sim = Sim()
+</script>
+<script>
+(() => {
+const cv = document.getElementById('track'), ctx = cv.getContext('2d');
+const W = cv.width, H = cv.height;
+const hint = document.getElementById('hint');
+const $ = id => document.getElementById(id);
+const st = { status: $('stStatus'), lap: $('stLap'), time: $('stTime'), best: $('stBest'), speed: $('stSpeed'), lat: $('stLat'), head: $('stHead'), off: $('stOff') };
+
+let py = null, sim = null, ready = false;
+let raw = [], drawing = false, track = null, halfW = 30, running = false, speedMul = 1;
+let car = null, trail = [], cones = { L: [], R: [] };
+
+// ---------- default controller source (extracted from the sim module) ----------
+const fullSrc = document.getElementById('labsim').textContent;
+function extractController(src) {
+  const s = src.indexOf('def controller('); const e = src.indexOf('\nclass Sim');
+  return src.slice(s, e).trimEnd() + '\n';
+}
+const defaultCtrl = extractController(fullSrc);
+$('pycode').value = defaultCtrl;
+
+// ---------- Pyodide ----------
+const PY_CDN = [
+  'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/',
+  'https://cdnjs.cloudflare.com/ajax/libs/pyodide/0.26.4/'
+];
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = () => rej(new Error('blocked: ' + src));
+    document.head.appendChild(s);
+  });
+}
+async function boot() {
+  for (const base of PY_CDN) {
+    try {
+      st.status.textContent = 'Loading Python…';
+      await loadScript(base + 'pyodide.js');
+      py = await loadPyodide({ indexURL: base });
+      py.runPython(fullSrc);
+      sim = py.globals.get('sim');
+      ready = true;
+      st.status.textContent = track ? 'Ready — press Start' : 'Draw a track';
+      if (track) { pushTrack(); $('btnRun').disabled = false; $('btnReset').disabled = false; }
+      return;
+    } catch (err) { console.warn('Pyodide source failed:', base, err); }
+  }
+  st.status.textContent = 'Python unavailable';
+  hint.style.display = ''; hint.textContent = "Couldn't load the Python runtime — check your connection and reload";
+}
+boot();
+
+function applyCode() {
+  const code = $('pycode').value;
+  try {
+    py.runPython(code);
+    if (typeof py.globals.get('controller') !== 'function') throw new Error('controller() not defined');
+    $('pyerr').textContent = '✓ applied';
+    $('pyerr').className = 'pyerr ok';
+  } catch (err) {
+    $('pyerr').textContent = String(err.message || err).split('\n').filter(l => l.trim()).slice(-1)[0];
+    $('pyerr').className = 'pyerr';
+  }
+}
+$('btnApply').onclick = () => ready && applyCode();
+$('btnRevert').onclick = () => { $('pycode').value = defaultCtrl; if (ready) applyCode(); };
+
+// ---------- drawing input ----------
+function pos(ev) {
+  const r = cv.getBoundingClientRect();
+  const t = ev.touches ? ev.touches[0] : ev;
+  return [(t.clientX - r.left) * W / r.width, (t.clientY - r.top) * H / r.height];
+}
+function down(ev) { ev.preventDefault(); drawing = true; raw = [pos(ev)]; track = null; running = false; car = null; trail = []; hint.style.display = 'none'; render(); }
+function move(ev) { if (!drawing) return; ev.preventDefault(); const p = pos(ev); const q = raw[raw.length - 1]; if (Math.hypot(p[0]-q[0], p[1]-q[1]) > 2) { raw.push(p); render(); } }
+function up(ev) { if (!drawing) return; drawing = false; finishTrack(); }
+cv.addEventListener('mousedown', down); cv.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
+cv.addEventListener('touchstart', down, { passive: false }); cv.addEventListener('touchmove', move, { passive: false }); cv.addEventListener('touchend', up);
+
+// ---------- track building ----------
+function finishTrack() {
+  if (raw.length < 20) { raw = []; hint.style.display = ''; hint.textContent = 'Too short — draw a bigger loop'; render(); return; }
+  // close the loop
+  let pts = raw.slice();
+  // resample by arc length
+  const spacing = 6;
+  const closed = pts.concat([pts[0]]);
+  let res = [], acc = 0;
+  res.push(closed[0]);
+  for (let i = 1; i < closed.length; i++) {
+    let [ax, ay] = closed[i-1], [bx, by] = closed[i];
+    let seg = Math.hypot(bx-ax, by-ay);
+    while (acc + seg >= spacing) {
+      const t = (spacing - acc) / seg;
+      const nx = ax + (bx-ax)*t, ny = ay + (by-ay)*t;
+      res.push([nx, ny]); ax = nx; ay = ny; seg = Math.hypot(bx-ax, by-ay); acc = 0;
+    }
+    acc += seg;
+  }
+  if (res.length > 3 && Math.hypot(res[res.length-1][0]-res[0][0], res[res.length-1][1]-res[0][1]) < spacing*0.5) res.pop();
+  // smooth (circular moving average, 3 passes)
+  for (let pass = 0; pass < 3; pass++) {
+    const n = res.length, out = [];
+    for (let i = 0; i < n; i++) {
+      let sx = 0, sy = 0;
+      for (let k = -3; k <= 3; k++) { const p = res[(i+k+n)%n]; sx += p[0]; sy += p[1]; }
+      out.push([sx/7, sy/7]);
+    }
+    res = out;
+  }
+  if (res.length < 40) { raw = []; hint.style.display = ''; hint.textContent = 'Too short — draw a bigger loop'; render(); return; }
+  track = res;
+  buildCones();
+  if (ready) { pushTrack(); $('btnRun').disabled = false; $('btnReset').disabled = false; st.status.textContent = 'Ready — press Start'; }
+  render();
+}
+function buildCones() {
+  cones = { L: [], R: [] };
+  const n = track.length, every = Math.max(4, Math.round(36 / 6));
+  for (let i = 0; i < n; i += every) {
+    const a = track[(i-1+n)%n], b = track[(i+1)%n];
+    let tx = b[0]-a[0], ty = b[1]-a[1]; const d = Math.hypot(tx, ty) || 1; tx /= d; ty /= d;
+    const nx = -ty, ny = tx; // left normal (screen coords)
+    cones.L.push([track[i][0] + nx*halfW, track[i][1] + ny*halfW]);
+    cones.R.push([track[i][0] - nx*halfW, track[i][1] - ny*halfW]);
+  }
+}
+function pushTrack() {
+  const arr = py.toPy(track);
+  sim.set_track(arr, halfW);
+  arr.destroy();
+  trail = [];
+  car = readState();
+}
+function readState() {
+  const p = sim.state, s = p.toJs();
+  p.destroy();
+  return { x: s[0], y: s[1], phi: s[2], v: s[3], theta: s[4] };
+}
+
+// ---------- controls ----------
+$('btnRun').onclick = () => { if (!track || !ready) return; running = !running; $('btnRun').textContent = running ? '⏸ Pause' : '▶ Start'; st.status.textContent = running ? 'Driving' : 'Paused'; };
+$('btnReset').onclick = () => { if (!track || !ready) return; sim.reset(); trail = []; car = readState(); running = false; $('btnRun').textContent = '▶ Start'; st.status.textContent = 'Ready — press Start'; st.lap.textContent = '–'; st.time.textContent = '0.00 s'; st.best.textContent = '–'; st.off.textContent = '0'; render(); };
+$('btnClear').onclick = () => { raw = []; track = null; car = null; trail = []; running = false; $('btnRun').textContent = '▶ Start'; $('btnRun').disabled = true; $('btnReset').disabled = true; hint.style.display = ''; hint.textContent = 'Draw a loop to begin'; st.status.textContent = ready ? 'Draw a track' : st.status.textContent; render(); };
+$('btnSample').onclick = () => {
+  raw = [];
+  for (let k = 0; k < 400; k++) { const t = 2*Math.PI*k/400; const r = 200 + 60*Math.sin(3*t) + 30*Math.cos(5*t + 1); raw.push([500 + 1.7*r*Math.cos(t), 300 + 1.05*r*Math.sin(t)]); }
+  hint.style.display = 'none'; finishTrack();
+};
+$('width').oninput = e => { halfW = +e.target.value; $('widthv').textContent = halfW; if (track) { buildCones(); if (ready) sim.set_width(halfW); render(); } };
+$('speed').oninput = e => { speedMul = +e.target.value; $('speedv').textContent = speedMul; };
+document.querySelectorAll('.tune input').forEach(inp => {
+  inp.oninput = () => { const k = inp.dataset.p; $(k + 'v').textContent = inp.value; if (ready) sim.set_param(k, +inp.value); };
+});
+
+// ---------- main loop ----------
+let last = performance.now(), look = null, kap = 0;
+function frame(now) {
+  const dtReal = Math.min(0.05, (now - last) / 1000); last = now;
+  if (running && ready && track) {
+    const sub = 3 * speedMul;
+    const proxy = sim.step(sub, dtReal / 3);
+    const r = proxy.toJs();
+    proxy.destroy();
+    car = { x: r[0], y: r[1], phi: r[2], v: r[3], theta: r[4] };
+    trail.push([r[0], r[1]]); if (trail.length > 600) trail.shift();
+    look = [r[12], r[13]]; kap = r[14];
+    st.lap.textContent = r[8]; st.time.textContent = r[9].toFixed(2) + ' s'; st.best.textContent = r[10] >= 0 ? r[10].toFixed(2) + ' s' : '–';
+    st.speed.textContent = Math.round(r[3]) + ' px/s'; st.lat.textContent = r[5].toFixed(1) + ' px'; st.head.textContent = (r[6]*180/Math.PI).toFixed(1) + '°'; st.off.textContent = r[11];
+    st.status.textContent = Math.abs(r[5]) > halfW ? 'Off track!' : 'Driving';
+  }
+  render();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// ---------- rendering ----------
+function render() {
+  ctx.clearRect(0, 0, W, H);
+  // grass
+  ctx.fillStyle = '#2a2f27'; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(255,255,255,0.035)'; ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 50) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 50) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+  if (!track) {
+    if (raw.length > 1) { ctx.strokeStyle = '#f2c14e'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(raw[0][0], raw[0][1]); for (const p of raw) ctx.lineTo(p[0], p[1]); ctx.stroke(); }
+    return;
+  }
+  // asphalt
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  const path = new Path2D(); path.moveTo(track[0][0], track[0][1]); for (const p of track) path.lineTo(p[0], p[1]); path.closePath();
+  ctx.strokeStyle = '#4a4a4a'; ctx.lineWidth = halfW*2 + 6; ctx.stroke(path);
+  ctx.strokeStyle = '#3a3a3a'; ctx.lineWidth = halfW*2; ctx.stroke(path);
+  ctx.setLineDash([10, 12]); ctx.strokeStyle = 'rgba(255,255,255,0.28)'; ctx.lineWidth = 2; ctx.stroke(path); ctx.setLineDash([]);
+  // start / finish
+  const a = track[0], b = track[1]; let tx = b[0]-a[0], ty = b[1]-a[1]; const d = Math.hypot(tx, ty)||1; tx/=d; ty/=d;
+  const cell = (halfW*2)/8;
+  ctx.save(); ctx.translate(a[0], a[1]); ctx.rotate(Math.atan2(ty, tx));
+  for (let col = 0; col < 2; col++) for (let row = 0; row < 8; row++) {
+    ctx.fillStyle = ((col + row) % 2 === 0) ? '#f0f0f0' : '#1b1b1b';
+    ctx.fillRect(col*cell - cell, row*cell - halfW, cell + 0.5, cell + 0.5);
+  }
+  ctx.restore();
+  // cones
+  for (const c of cones.L) { ctx.fillStyle = '#3b82f6'; ctx.beginPath(); ctx.arc(c[0], c[1], 3.2, 0, 7); ctx.fill(); }
+  for (const c of cones.R) { ctx.fillStyle = '#f97316'; ctx.beginPath(); ctx.arc(c[0], c[1], 3.2, 0, 7); ctx.fill(); }
+  // trail
+  if (trail.length > 1) { ctx.strokeStyle = 'rgba(242,193,78,0.55)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(trail[0][0], trail[0][1]); for (const p of trail) ctx.lineTo(p[0], p[1]); ctx.stroke(); }
+  // lookahead
+  if (car && look && running) { ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.setLineDash([3, 4]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(car.x, car.y); ctx.lineTo(look[0], look[1]); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(look[0], look[1], 2.5, 0, 7); ctx.fill(); }
+  // car
+  if (car) {
+    ctx.save(); ctx.translate(car.x, car.y); ctx.rotate(car.phi);
+    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(-13, -6, 26, 12);
+    ctx.fillStyle = '#f2c14e'; ctx.fillRect(-12, -5.5, 24, 11);
+    ctx.fillStyle = '#222'; ctx.fillRect(-11, -7, 6, 2.5); ctx.fillRect(-11, 4.5, 6, 2.5);
+    ctx.save(); ctx.translate(7, -6); ctx.rotate(car.theta); ctx.fillRect(-3, 0, 6, 2.5); ctx.restore();
+    ctx.save(); ctx.translate(7, 3.5); ctx.rotate(car.theta); ctx.fillRect(-3, 0, 6, 2.5); ctx.restore();
+    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(2, -3, 5, 6);
+    ctx.restore();
+  }
+}
+render();
+})();
+</script>
+<a class="top" href="#top">Back to top</a>
+</main>
+</div>
+</body>
+</html>

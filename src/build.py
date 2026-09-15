@@ -164,6 +164,51 @@ img{max-width:100%;display:block;height:auto}
  .exp div{grid-template-columns:1fr}
  .exp i{white-space:normal}
 }
+/* ---------- racetrack lab ---------- */
+.lab{max-width:1120px}
+.lab h1{font-size:30px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;text-align:center;margin:36px 0 6px;color:#fff}
+.lab .sub{text-align:center;color:var(--muted);font-size:14px;margin:0 0 30px;font-family:"Lora",Georgia,serif}
+.lab .intro{max-width:860px;margin:0 auto 26px;text-align:center;color:var(--body);font-size:16px;line-height:1.65}
+.canvasbox{position:relative;border:1px solid var(--rule);background:#2a2f27}
+#track{display:block;width:100%;height:auto;aspect-ratio:5/3;touch-action:none;cursor:crosshair}
+.hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:"Lora",Georgia,serif;font-size:19px;color:rgba(255,255,255,.5);letter-spacing:.02em}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 16px}
+.toolbar .grow{flex:1}
+.btn{font-family:"Figtree",sans-serif;font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--fg);background:#3d3d3d;border:1px solid var(--rule);padding:8px 14px;cursor:pointer;transition:background .15s,color .15s}
+.btn:hover:not(:disabled){background:#4a4a4a;color:#fff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#2a2a2a}
+.btn.primary:hover:not(:disabled){background:#ffd166;color:#2a2a2a}
+.slider{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.slider input{width:90px;accent-color:var(--accent)}
+.slider span{color:#fff;min-width:22px;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(8,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-bottom:16px}
+.stats div{background:#2f2f2f;padding:10px 12px;min-width:0}
+.stats span{display:block;font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.stats b{font-family:"Lora",Georgia,serif;font-weight:400;font-size:15px;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tuning{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 22px;margin-bottom:20px}
+.tune label{display:flex;justify-content:space-between;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.tune label .n{color:var(--muted)}
+.tune label span:last-child{color:var(--accent);font-variant-numeric:tabular-nums}
+.tune input{width:100%;accent-color:var(--accent)}
+.code{border:1px solid var(--rule);background:#2b2b2b}
+.code summary{padding:11px 14px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;cursor:pointer}
+.code summary:hover{background:#333}
+#pycode{display:block;width:100%;height:340px;background:#232323;color:#d8d8d8;border:0;border-top:1px solid var(--rule);padding:14px 16px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55;resize:vertical;outline:none;tab-size:4}
+.codebar{display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--rule)}
+.pyerr{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#f87171}
+.pyerr.ok{color:#4ade80}
+.code .note{margin:0;padding:0 14px 14px;font-size:12px;color:var(--muted)}
+.code .note a{color:var(--accent);text-decoration:underline}
+@media (max-width:1100px){.stats{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:760px){
+ .lab h1{font-size:23px}
+ .stats{grid-template-columns:repeat(2,1fr)}
+ .tuning{grid-template-columns:1fr 1fr}
+ .toolbar .grow{display:none}
+ .slider input{width:70px}
+ #pycode{height:260px;font-size:11.5px}
+}
 """
 
 HEAD = """<!DOCTYPE html>
@@ -196,6 +241,7 @@ def sidebar(active):
 <nav>
 <a href="/about"{' class=active' if active=='about' else ''}>About Me</a>
 <a href="/"{' class=active' if active=='work' else ''}>Work</a>
+<a href="/racetrack"{' class=active' if active=='racetrack' else ''}>Racetrack Lab</a>
 <a href="/contact"{' class=active' if active=='contact' else ''}>Contact</a>
 <button class="mtoggle" type="button" onclick="this.parentNode.classList.toggle('open')">Projects</button>
 <div class="plist"><div class="label">Work</div>
@@ -277,6 +323,14 @@ c = f'''<article class="contact"><h1>Contact</h1>
 </div></article>
 '''
 page("contact.html", f"{SITE['name']} — Contact", "Get in touch with Antoine Bonhomme.", "contact", c)
+
+# ---- Racetrack Lab
+lab = open(os.path.join(HERE, "lab.html")).read()
+lab = lab.replace("__LAB_SIM__", open(os.path.join(HERE, "lab_sim.py")).read())
+lab = lab.replace("/lab_sim.py", "https://github.com/AJBonhomme/portfolio/blob/main/src/lab_sim.py")
+page("racetrack.html", f"{SITE['name']} — Racetrack Lab",
+     "Draw a racetrack with your mouse and watch a car driven by a live Python path-following controller try to lap it.",
+     "racetrack", lab, og=cover_thumb(*PROJECTS[1]["cover"]))
 
 with open(os.path.join(OUT, "style.css"), "w") as f: f.write(CSS)
 with open(os.path.join(OUT, "favicon.svg"), "w") as f:
