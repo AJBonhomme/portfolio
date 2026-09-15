@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antoine Bonhomme — DERConnect Microgrid Research</title>
+<meta name="description" content="Authored a microgrid-modeling paper — Preventative Feeder Overloading During DER System Failures in Residential Community Microgrids — using real-time hardware-in-the-loop simulation to keep neighborh">
+<meta property="og:title" content="Antoine Bonhomme — DERConnect Microgrid Research">
+<meta property="og:description" content="Authored a microgrid-modeling paper — Preventative Feeder Overloading During DER System Failures in Residential Community Microgrids — using real-time hardware-in-the-loop simulation to keep neighborh">
+<meta property="og:image" content="/img/derconnect-ad9945dda4.jpg">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="layout">
+<aside class="side">
+<a class="name" href="/">Antoine Bonhomme</a>
+<span class="tag">Mechanical Engineering @ UC Berkeley</span>
+<nav>
+<a href="/about">About Me</a>
+<a href="/">Work</a>
+<a href="/contact">Contact</a>
+<button class="mtoggle" type="button" onclick="this.parentNode.classList.toggle('open')">Projects</button>
+<div class="plist"><div class="label">Work</div>
+<a href="/feb-differential-mount">FEB Differential Mount</a><a href="/feb-path-following-controller">FEB Path-Following Controller</a><a href="/seebyte-hovering-auv">SeeByte Hovering AUV Retrofit</a><a href="/mesafsd-autonomous-go-kart">MesaFSD Autonomous Go-Kart</a><a href="/derconnect-microgrid-research" class=active>DERConnect Microgrid Research</a><a href="/derconnect-microgrid-pcb">Decentralized Microgrid PCB</a><a href="/off-road-go-kart">Off-Road Go-Kart Build</a><a href="/obstacle-avoiding-rc-car">Obstacle-Avoiding RC Car (v3)</a><a href="/rc-car-iterations">RC Car v0 – v2</a><a href="/handheld-distance-finder">Handheld Distance Finder</a>
+</div>
+</nav>
+<div class="foot"><a href="https://docs.google.com/document/d/1bYhJqDFZi9Dlk61fPpLYqg_OwdbEA28v_bysWaAPR18/edit?usp=sharing" target="_blank" rel="noopener">Resume ↗</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/antoine-bonhomme-5b210a320/" target="_blank" rel="noopener">LinkedIn ↗</a></div>
+</aside>
+<main class="main" id="top">
+<article class="proj"><h1>DERConnect Microgrid Research</h1><p class="sub">UCSD DERConnect Research Assistant · Jun – Aug 2025 · 2025</p><div class="intro"><p>Authored a microgrid-modeling paper — Preventative Feeder Overloading During DER System Failures in Residential Community Microgrids — using real-time hardware-in-the-loop simulation to keep neighborhood power grids from overloading when their solar and battery equipment suddenly fails. Published with Clean Coalition, a nonprofit energy organization.</p><p>Also built out the DERConnect server room from scratch: 30+ compute nodes installed and configured, with custom laser-cut mounts and rack components for non-standard equipment.</p></div><section class="sec"><h2>Staged Load Shedding</h2><div class="txt"><p>The control strategy steps power use down in stages during an emergency. Stage I, adaptive prioritization: shed discretionary Tier-3 loads (EV charging, pool pumps, non-critical lighting), about 75% of demand, to stay under the feeder limit. Stage II, critical isolation: island the microgrid to serve only Tier-1 critical loads (~10% of normal demand). Stage III, emergency disconnect: trip all breakers so no surge reaches the feeder. Smart panels at each home execute the shedding autonomously, and 40 A emergency outlets stay powered through Stages II and III.</p><p>Because RSCAD only allows one output per variable, the stage selector is built from three switches with AND/NOT logic so only one can win at a time; the winner is multiplied by its shedding percentage to produce a single 0 / 10 / 50 / 70% signal fed to every home load block.</p></div><div class="imgs triple"><figure><div class="fr"><img src="/img/derconnect-ceb9cd6b26.jpg" alt="Research paper" loading="lazy"></div><figcaption>Research paper</figcaption></figure><figure><div class="fr"><img src="/img/derconnect-035314133e.jpg" alt="Stage-select logic in RSCAD" loading="lazy"></div><figcaption>Stage-select logic in RSCAD</figcaption></figure><figure><div class="fr"><img src="/img/derconnect-3814c6406b.jpg" alt="Community microgrid draft model" loading="lazy"></div><figcaption>Community microgrid draft model</figcaption></figure></div></section><section class="sec"><h2>Modeling, BESS Optimization &amp; Testing</h2><div class="txt"><p>Modeled the DOE Connected Community (Menifee, CA) in UC San Diego&#x27;s Real-Time Digital Simulator using real 15-minute load profiles from campus buildings, compressing 24 hours into a 24-minute run with a Python downsampling script. Built a Python + CVX optimizer that schedules the 2 MW Li-ion battery&#x27;s charge and discharge against variable pricing to cut cost and peak demand, with battery-health and spike penalties, linked it to the RTDS over Modbus, and validated it against disaster scenarios — BESS failure, PV failure, full grid loss — at peak-demand noon conditions.</p></div><div class="imgs pair"><figure><div class="fr"><img src="/img/derconnect-b8cf992895.jpg" alt="RSCAD runtime page" loading="lazy"></div><figcaption>RSCAD runtime page</figcaption></figure><figure><div class="fr"><img src="/img/derconnect-6a8638e034.jpg" alt="24-minute compressed load data" loading="lazy"></div><figcaption>24-minute compressed load data</figcaption></figure></div></section><section class="sec"><h2>Building the Server Room</h2><div class="txt"><p>Installed and configured 30+ compute nodes for real-time grid simulation, designed and laser-cut custom mounting hardware for non-standard equipment, and handled the physical installation end-to-end — mounting, power and network cabling, and rack organization for airflow and serviceability — so the layout supports the lab&#x27;s RTDS and hardware-in-the-loop workflows.</p></div><div class="imgs triple"><figure><div class="fr"><img src="/img/derconnect-10f2319fde.jpg" alt="Compute node" loading="lazy"></div><figcaption>Compute node</figcaption></figure><figure><div class="fr"><img src="/img/derconnect-ad9945dda4.jpg" alt="Rack build-out" loading="lazy"></div><figcaption>Rack build-out</figcaption></figure><figure><div class="fr"><img src="/img/derconnect-bce26dee04.jpg" alt="DERConnect research team" loading="lazy"></div><figcaption>DERConnect research team</figcaption></figure></div></section><nav class="pn"><a href="/mesafsd-autonomous-go-kart"><span>Previous</span>MesaFSD Autonomous Go-Kart</a><a href="/derconnect-microgrid-pcb" style="text-align:right"><span>Next</span>Decentralized Microgrid PCB</a></nav></article>
+<a class="top" href="#top">Back to top</a>
+</main>
+</div>
+</body>
+</html>

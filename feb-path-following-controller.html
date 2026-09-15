@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antoine Bonhomme — FEB Path-Following Controller</title>
+<meta name="description" content="Developing a Python path-following controller for a simulated race car on a cone-defined track. The controller takes the vehicle state [x, y, heading φ, velocity v, steering angle θ] and outputs accel">
+<meta property="og:title" content="Antoine Bonhomme — FEB Path-Following Controller">
+<meta property="og:description" content="Developing a Python path-following controller for a simulated race car on a cone-defined track. The controller takes the vehicle state [x, y, heading φ, velocity v, steering angle θ] and outputs accel">
+<meta property="og:image" content="/img/feb_autonomous-4bce310200.jpg">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="layout">
+<aside class="side">
+<a class="name" href="/">Antoine Bonhomme</a>
+<span class="tag">Mechanical Engineering @ UC Berkeley</span>
+<nav>
+<a href="/about">About Me</a>
+<a href="/">Work</a>
+<a href="/contact">Contact</a>
+<button class="mtoggle" type="button" onclick="this.parentNode.classList.toggle('open')">Projects</button>
+<div class="plist"><div class="label">Work</div>
+<a href="/feb-differential-mount">FEB Differential Mount</a><a href="/feb-path-following-controller" class=active>FEB Path-Following Controller</a><a href="/seebyte-hovering-auv">SeeByte Hovering AUV Retrofit</a><a href="/mesafsd-autonomous-go-kart">MesaFSD Autonomous Go-Kart</a><a href="/derconnect-microgrid-research">DERConnect Microgrid Research</a><a href="/derconnect-microgrid-pcb">Decentralized Microgrid PCB</a><a href="/off-road-go-kart">Off-Road Go-Kart Build</a><a href="/obstacle-avoiding-rc-car">Obstacle-Avoiding RC Car (v3)</a><a href="/rc-car-iterations">RC Car v0 – v2</a><a href="/handheld-distance-finder">Handheld Distance Finder</a>
+</div>
+</nav>
+<div class="foot"><a href="https://docs.google.com/document/d/1bYhJqDFZi9Dlk61fPpLYqg_OwdbEA28v_bysWaAPR18/edit?usp=sharing" target="_blank" rel="noopener">Resume ↗</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/antoine-bonhomme-5b210a320/" target="_blank" rel="noopener">LinkedIn ↗</a></div>
+</aside>
+<main class="main" id="top">
+<article class="proj"><h1>FEB Path-Following Controller</h1><p class="sub">Formula Electric at Berkeley — Autonomous · 2026</p><div class="intro"><p>Developing a Python path-following controller for a simulated race car on a cone-defined track. The controller takes the vehicle state [x, y, heading φ, velocity v, steering angle θ] and outputs acceleration and steering-rate commands [a, θ̇], using a kinematic bicycle model and feedback control with steering and acceleration constraints. Objective: a fast, safe lap with no cones hit.</p></div><section class="sec"><h2>Control Theory Learning</h2><div class="txt"><p>Reviewed Python and NumPy array operations, learned vehicle state representation, studied the kinematic bicycle model, and worked through open-loop vs. closed-loop feedback and PID control — then applied each concept incrementally in the simulator.</p></div><div class="imgs triple"><figure><div class="fr"><img src="/img/feb_autonomous-99064adc19.jpg" alt="Kinematic bicycle model" loading="lazy"></div><figcaption>Kinematic bicycle model</figcaption></figure><figure><div class="fr"><img src="/img/feb_autonomous-45aa3097b6.jpg" alt="The cone-defined track and initial car pose" loading="lazy"></div><figcaption>The cone-defined track and initial car pose</figcaption></figure><figure><div class="fr"><img src="/img/feb_autonomous-0a1834d225.jpg" alt="Feedback control notes" loading="lazy"></div><figcaption>Feedback control notes</figcaption></figure></div></section><section class="sec"><h2>Learning Simulation</h2><div class="txt"><p>Built a small timestep simulation to teach myself the fundamentals: start with a known state, apply a control, calculate the state derivatives, advance by dt, repeat. The first controller computed a desired heading toward a target with atan2 and used proportional feedback on the heading error — which worked, but caused the car to loop around the target with no way to correct lateral error.</p></div><div class="imgs triple"><figure><div class="fr"><img src="/img/feb_autonomous-4e1f65de98.jpg" alt="Spiralling into the target" loading="lazy"></div><figcaption>Spiralling into the target</figcaption></figure><figure><div class="fr"><img src="/img/feb_autonomous-8d5cb40b49.jpg" alt="Unstable gain" loading="lazy"></div><figcaption>Unstable gain</figcaption></figure><figure><div class="fr"><img src="/img/feb_autonomous-c37c0663ad.jpg" alt="Point-toward-target controller" loading="lazy"></div><figcaption>Point-toward-target controller</figcaption></figure></div></section><section class="sec"><h2>From Target Tracking to Path Tracking</h2><div class="txt"><p>Sampled the track centerline, found the closest centerline point to the car, computed the track direction and a signed lateral error (being 5 m away is not enough — you need to know which side of the track you&#x27;re on), and combined it with heading error: θ̇ = K_heading · e_heading − K_lateral · e_lateral. Tuning the two gains is what keeps the car off the cones.</p></div><div class="imgs pair"><figure><div class="fr"><img src="/img/feb_autonomous-1be2eb8cdf.jpg" alt="Closest-point and lateral error" loading="lazy"></div><figcaption>Closest-point and lateral error</figcaption></figure><figure><div class="fr"><img src="/img/feb_autonomous-359e3ffcaf.jpg" alt="Early path tracking — oscillating around the centerline" loading="lazy"></div><figcaption>Early path tracking — oscillating around the centerline</figcaption></figure></div></section><section class="sec"><h2>Current P Controller</h2><div class="txt"><p>The current controller follows the centerline cleanly around the full track. Next steps: better speed control, measuring lap time, and moving from a P controller to full PID.</p></div><div class="imgs pair"><figure><div class="fr"><img src="/img/feb_autonomous-0e6ad804e2.jpg" alt="Car trajectory vs. centerline" loading="lazy"></div><figcaption>Car trajectory vs. centerline</figcaption></figure><figure><div class="fr"><img src="/img/feb_autonomous-4bce310200.jpg" alt="Tuned heading + lateral controller" loading="lazy"></div><figcaption>Tuned heading + lateral controller</figcaption></figure></div></section><nav class="pn"><a href="/feb-differential-mount"><span>Previous</span>FEB Differential Mount</a><a href="/seebyte-hovering-auv" style="text-align:right"><span>Next</span>SeeByte Hovering AUV Retrofit</a></nav></article>
+<a class="top" href="#top">Back to top</a>
+</main>
+</div>
+</body>
+</html>
