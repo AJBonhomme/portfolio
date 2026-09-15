@@ -103,7 +103,8 @@ async function boot() {
 }
 boot();
 
-let goodSrc = defaultCtrl;              // last controller known to run
+let goodSrc = defaultCtrl;   // last controller that actually drove a frame
+let pendingSrc = null;       // applied, but not yet proven at runtime
 function showErr(msg, ok) {
   $('pyerr').textContent = ok ? '✓ applied' : String(msg).split('\n').filter(l => l.trim()).slice(-1)[0];
   $('pyerr').className = ok ? 'pyerr ok' : 'pyerr';
@@ -115,10 +116,11 @@ function applyCode() {
     py.runPython(code);
     if (!py.runPython("'controller' in globals() and callable(controller)"))
       throw new Error('your code must define controller(state, err, p)');
-    goodSrc = code;
+    pendingSrc = code;       // promoted to goodSrc once it survives a step
     showErr(null, true);
   } catch (err) {
-    py.runPython(goodSrc);              // roll back to the last working controller
+    py.runPython(goodSrc);   // roll back to the last working controller
+    pendingSrc = null;
     showErr(err.message || err, false);
   }
 }
@@ -225,13 +227,16 @@ function frame(now) {
     } catch (err) {                      // user controller blew up mid-drive
       running = false; $('btnRun').textContent = '▶ Start';
       st.status.textContent = 'Controller error';
-      showErr(err.message || err, false);
-      try { py.runPython(goodSrc); $('pycode').value = goodSrc; } catch (e) {}
+      // keep the user's code in the editor so they can fix it, but drive with the last good one
+      try { py.runPython(goodSrc); } catch (e) {}
+      pendingSrc = null;
+      showErr((err.message || err) + ' — rolled back to last working controller', false);
       sim.reset(); trail = []; car = readState();
       render(); requestAnimationFrame(frame); return;
     }
     const r = proxy.toJs();
     proxy.destroy();
+    if (pendingSrc) { goodSrc = pendingSrc; pendingSrc = null; }  // proven at runtime
     car = { x: r[0], y: r[1], phi: r[2], v: r[3], theta: r[4] };
     trail.push([r[0], r[1]]); if (trail.length > 600) trail.shift();
     look = [r[12], r[13]]; kap = r[14];
