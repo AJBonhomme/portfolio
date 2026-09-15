@@ -1,53 +1,64 @@
 <article class="lab">
 <h1>Racetrack Lab</h1>
-<p class="sub">Draw a track. A Python controller drives it. · Experimental</p>
-<div class="intro"><p>Drag your mouse (or finger) on the canvas to sketch a closed loop. The sketch becomes a cone-lined track, and a car running a <em>real Python</em> path-following controller — the same kinematic bicycle model, heading-error and lateral-error feedback I built for Formula Electric at Berkeley — tries to lap it as fast as it can. The Python runs right in your browser via Pyodide; edit it below and hit Apply.</p></div>
+<p class="sub">Draw a track. Race the autonomous car. · Experimental</p>
+<div class="intro"><p>Pick a circuit or draw your own with the mouse, then race the yellow car around it. It's driven by a <em>real Python</em> controller running in your browser — a kinematic bicycle model with heading and lateral-error feedback, the same approach I built for Formula Electric at Berkeley. <b>Arrow keys</b> or <b>WASD</b> to drive. Beat it if you can.</p></div>
 
-<div class="labwrap">
-  <div class="canvasbox">
-    <canvas id="track" width="1000" height="600"></canvas>
-    <div id="hint" class="hint">Draw a loop to begin</div>
-  </div>
-  <div class="toolbar">
-    <button id="btnRun" class="btn primary" disabled>▶ Start</button>
-    <button id="btnReset" class="btn" disabled>Reset car</button>
-    <button id="btnClear" class="btn">Clear track</button>
-    <button id="btnSample" class="btn">Sample track</button>
-    <span class="grow"></span>
-    <label class="slider">Track width <input id="width" type="range" min="18" max="50" value="30"><span id="widthv">30</span></label>
-    <label class="slider">Speed ×<input id="speed" type="range" min="1" max="4" value="1" step="1"><span id="speedv">1</span></label>
-  </div>
-  <div class="stats">
-    <div><span>Status</span><b id="stStatus">Loading Python…</b></div>
-    <div><span>Lap</span><b id="stLap">–</b></div>
-    <div><span>Lap time</span><b id="stTime">0.00 s</b></div>
-    <div><span>Best</span><b id="stBest">–</b></div>
-    <div><span>Speed</span><b id="stSpeed">0</b></div>
-    <div><span>Lateral err</span><b id="stLat">0.0 px</b></div>
-    <div><span>Heading err</span><b id="stHead">0.0°</b></div>
-    <div><span>Off-track</span><b id="stOff">0</b></div>
-  </div>
+<div class="tracks" id="tracks"></div>
 
+<div class="canvasbox">
+  <canvas id="track" width="1000" height="600"></canvas>
+  <div id="hint" class="hint">Pick a circuit above, or drag here to draw your own</div>
+</div>
+
+<div class="dpad" id="dpad">
+  <button class="dbtn" data-k="left">◀</button>
+  <button class="dbtn" data-k="down">BRAKE</button>
+  <button class="dbtn" data-k="up">GAS</button>
+  <button class="dbtn" data-k="right">▶</button>
+</div>
+
+<div class="toolbar">
+  <button id="btnRace" class="btn primary" disabled>🏁 Race the AI</button>
+  <button id="btnWatch" class="btn" disabled>▶ Watch AI</button>
+  <button id="btnReset" class="btn" disabled>↺ Reset</button>
+  <button id="btnClear" class="btn">✎ Draw your own</button>
+  <span class="grow"></span>
+  <button id="btnShare" class="btn" disabled>🔗 Challenge a friend</button>
+  <button id="btnSound" class="btn" title="Sound">🔇</button>
+</div>
+
+<div class="scoreboard">
+  <div class="sb you"><span>You</span><b id="sbYou">–</b><i id="sbYouBest">best –</i></div>
+  <div class="sb ai"><span>AI</span><b id="sbAi">–</b><i id="sbAiBest">best –</i></div>
+  <div class="sb"><span>Target</span><b id="sbTarget">–</b><i id="sbMedal">drive a lap</i></div>
+  <div class="sb"><span>Status</span><b id="sbStatus">Warming up Python…</b><i id="sbSub">drawing works already</i></div>
+</div>
+
+<details class="panel" id="tunePanel">
+  <summary>Tuning — the AI's gains, live</summary>
   <div class="tuning">
-    <div class="tune"><label><span class="n">K<sub>heading</sub></span> <span id="K_hv">2.4</span></label><input data-p="K_h" type="range" min="0" max="6" step="0.1" value="2.4"></div>
-    <div class="tune"><label><span class="n">K<sub>lateral</sub></span> <span id="K_lv">0.035</span></label><input data-p="K_l" type="range" min="0" max="0.12" step="0.005" value="0.035"></div>
+    <div class="tune"><label><span class="n">K<sub>heading</sub></span> <span id="K_hv">2.5</span></label><input data-p="K_h" type="range" min="0" max="6" step="0.1" value="2.5"></div>
+    <div class="tune"><label><span class="n">K<sub>lateral</sub></span> <span id="K_lv">0.03</span></label><input data-p="K_l" type="range" min="0" max="0.12" step="0.005" value="0.03"></div>
     <div class="tune"><label><span class="n">K<sub>steer</sub></span> <span id="K_sv">9</span></label><input data-p="K_s" type="range" min="1" max="20" step="0.5" value="9"></div>
     <div class="tune"><label><span class="n">v<sub>max</sub></span> <span id="v_maxv">190</span></label><input data-p="v_max" type="range" min="40" max="400" step="10" value="190"></div>
     <div class="tune"><label><span class="n">a<sub>lat</sub></span> <span id="a_latv">280</span></label><input data-p="a_lat" type="range" min="60" max="800" step="20" value="280"></div>
     <div class="tune"><label><span class="n">Lookahead</span> <span id="lookaheadv">16</span></label><input data-p="lookahead" type="range" min="4" max="60" step="2" value="16"></div>
+    <div class="tune"><label><span class="n">Track width</span> <span id="widthv">30</span></label><input id="width" type="range" min="18" max="50" value="30"></div>
+    <div class="tune"><label><span class="n">Watch speed ×</span> <span id="speedv">1</span></label><input id="speed" type="range" min="1" max="4" step="1" value="1"></div>
   </div>
+  <p class="note">v<sub>max</sub> and a<sub>lat</sub> apply to both cars, so the race stays fair. Changing anything here clears the lap records for this circuit.</p>
+</details>
 
-  <details class="code" open>
-    <summary>controller.py — edit the Python that drives the car</summary>
-    <textarea id="pycode" spellcheck="false"></textarea>
-    <div class="codebar">
-      <button id="btnApply" class="btn primary">Apply code</button>
-      <button id="btnRevert" class="btn">Revert to default</button>
-      <span id="pyerr" class="pyerr"></span>
-    </div>
-    <p class="note">The full simulator source (vehicle model, error computation, lap logic) is in <a href="/lab_sim.py" target="_blank">lab_sim.py</a>. Only <code>controller()</code> is swapped in when you apply.</p>
-  </details>
-</div>
+<details class="panel">
+  <summary>controller.py — edit the Python that drives the AI</summary>
+  <textarea id="pycode" spellcheck="false"></textarea>
+  <div class="codebar">
+    <button id="btnApply" class="btn primary">Apply code</button>
+    <button id="btnRevert" class="btn">Revert to default</button>
+    <span id="pyerr" class="pyerr"></span>
+  </div>
+  <p class="note">The full simulator — vehicle model, error computation, lap logic — is in <a href="/lab_sim.py" target="_blank">lab_sim.py</a>. Only <code>controller()</code> is swapped in when you apply.</p>
+</details>
 </article>
 
 <script id="labsim" type="text/x-python">__LAB_SIM__</script>
@@ -55,248 +66,520 @@
 (() => {
 const cv = document.getElementById('track'), ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
-const hint = document.getElementById('hint');
 const $ = id => document.getElementById(id);
-const st = { status: $('stStatus'), lap: $('stLap'), time: $('stTime'), best: $('stBest'), speed: $('stSpeed'), lat: $('stLat'), head: $('stHead'), off: $('stOff') };
+const hint = $('hint');
 
-let py = null, sim = null, ready = false;
-let raw = [], drawing = false, track = null, halfW = 30, running = false, speedMul = 1;
-let car = null, trail = [], cones = { L: [], R: [] };
-
-// ---------- default controller source (extracted from the sim module) ----------
-const fullSrc = document.getElementById('labsim').textContent;
-function extractController(src) {
-  const s = src.indexOf('def controller('); const e = src.indexOf('\nclass Sim');
-  return src.slice(s, e).trimEnd() + '\n';
+// ---------------------------------------------------------------- presets
+// aiBest measured by running the default controller headlessly on each circuit.
+const angDist = (t,c) => Math.abs(((t-c+Math.PI) % (2*Math.PI)) - Math.PI);
+function fitPts(pts, m){
+  const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+  const x0=Math.min(...xs), x1=Math.max(...xs), y0=Math.min(...ys), y1=Math.max(...ys);
+  const sc=Math.min((W-2*m)/(x1-x0), (H-2*m)/(y1-y0));
+  const cx=(x0+x1)/2, cy=(y0+y1)/2;
+  return pts.map(p=>[(p[0]-cx)*sc + W/2, (p[1]-cy)*sc + H/2]);
 }
-const defaultCtrl = extractController(fullSrc);
+const PRESETS = [
+  {id:'warmup', name:'Warm-Up', aiBest:8.83,
+   f:t=>{const r=215+58*Math.sin(2*t)+40*Math.sin(3*t+0.8); return [500+1.30*r*Math.cos(t), 300+1.20*r*Math.sin(t)];}},
+  {id:'oval', name:'Big Oval', aiBest:11.43,
+   f:t=>[500+385*Math.cos(t), 300+205*Math.sin(t)]},
+  {id:'hairpin', name:'Hairpin Alley', aiBest:12.63,
+   f:t=>{const r=118+152*(1-Math.exp(-Math.pow(angDist(t,Math.PI)/0.5,2))); return [500+1.72*r*Math.cos(t), 300+1.02*r*Math.sin(t)];}},
+  {id:'snake', name:'Snake Pit', aiBest:14.38,
+   f:t=>{const r=205+62*Math.sin(3*t)+32*Math.cos(5*t); return [500+1.62*r*Math.cos(t), 300+1.02*r*Math.sin(t)];}},
+  {id:'technical', name:'The Technical', aiBest:16.67,
+   f:t=>{const r=200+42*Math.sin(4*t)+24*Math.sin(7*t+1); return [500+1.70*r*Math.cos(t), 300+1.00*r*Math.sin(t)];}},
+];
+const MEDALS = [[1.05,'🥇','Gold'],[1.20,'🥈','Silver'],[1.45,'🥉','Bronze']];
+
+// ---------------------------------------------------------------- state
+let py=null, aiSim=null, plSim=null, ready=false;
+let raw=[], drawing=false, track=null, halfW=30, cones={L:[],R:[]};
+let mode='idle';                 // idle | countdown | racing | watching
+let countdown=0, speedMul=1, curPreset=null, refBest=null;
+let ai=null, pl=null, aiTrail=[], plTrail=[];
+let ghost=null, ghostRec=[], ghostT=0, lapT0=0;
+let bestYou=null, bestAi=null, confetti=[], flash=null;
+const keys={left:false,right:false,up:false,down:false};
+
+// ---------------------------------------------------------------- python
+const fullSrc = $('labsim').textContent;
+const defaultCtrl = (() => {
+  const s = fullSrc.indexOf('def controller('), e = fullSrc.indexOf('\nclass Sim');
+  return fullSrc.slice(s, e).trimEnd() + '\n';
+})();
 $('pycode').value = defaultCtrl;
 
-// ---------- Pyodide ----------
-const PY_CDN = [
-  'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/',
-  'https://cdnjs.cloudflare.com/ajax/libs/pyodide/0.26.4/'
-];
-function loadScript(src) {
-  return new Promise((res, rej) => {
-    const s = document.createElement('script');
-    s.src = src; s.onload = res; s.onerror = () => rej(new Error('blocked: ' + src));
-    document.head.appendChild(s);
-  });
-}
-async function boot() {
-  for (const base of PY_CDN) {
-    try {
-      st.status.textContent = 'Loading Python…';
-      await loadScript(base + 'pyodide.js');
-      py = await loadPyodide({ indexURL: base });
+const PY_CDN = ['https://cdn.jsdelivr.net/pyodide/v0.26.4/full/',
+                'https://cdnjs.cloudflare.com/ajax/libs/pyodide/0.26.4/'];
+const loadScript = src => new Promise((res, rej) => {
+  const s=document.createElement('script'); s.src=src; s.onload=res;
+  s.onerror=()=>rej(new Error('blocked: '+src)); document.head.appendChild(s);
+});
+async function boot(){
+  for (const base of PY_CDN){
+    try{
+      await loadScript(base+'pyodide.js');
+      py = await loadPyodide({indexURL: base});
       py.runPython(fullSrc);
-      sim = py.globals.get('sim');
+      aiSim = py.globals.get('sim'); plSim = py.globals.get('psim');
       ready = true;
-      st.status.textContent = track ? 'Ready — press Start' : 'Draw a track';
-      if (track) { pushTrack(); $('btnRun').disabled = false; $('btnReset').disabled = false; }
+      setStatus('Ready', track ? 'press Race the AI' : 'pick or draw a circuit');
+      if (track) pushTrack();
+      syncButtons();
       return;
-    } catch (err) { console.warn('Pyodide source failed:', base, err); }
+    }catch(err){ console.warn('Pyodide source failed:', base, err); }
   }
-  st.status.textContent = 'Python unavailable';
-  hint.style.display = ''; hint.textContent = "Couldn't load the Python runtime — check your connection and reload";
+  setStatus('Python unavailable', 'check your connection and reload');
 }
 boot();
 
-let goodSrc = defaultCtrl;   // last controller that actually drove a frame
-let pendingSrc = null;       // applied, but not yet proven at runtime
-// Python tracebacks are multi-line; the last non-empty line is the useful bit.
-const lastLine = m => String(m).split('\n').filter(l => l.trim()).slice(-1)[0] || String(m);
-function showErr(msg, ok) {
-  $('pyerr').textContent = ok ? '✓ applied' : msg;
-  $('pyerr').className = ok ? 'pyerr ok' : 'pyerr';
-}
-function applyCode() {
+let goodSrc = defaultCtrl, pendingSrc = null;
+const lastLine = m => String(m).split('\n').filter(l=>l.trim()).slice(-1)[0] || String(m);
+function showErr(msg, ok){ $('pyerr').textContent = ok?'✓ applied':msg; $('pyerr').className = ok?'pyerr ok':'pyerr'; }
+function applyCode(){
   const code = $('pycode').value;
-  try {
+  try{
     py.runPython("try:\n    del controller\nexcept NameError:\n    pass\n");
     py.runPython(code);
-    if (!py.runPython("'controller' in globals() and callable(controller)"))
+    if(!py.runPython("'controller' in globals() and callable(controller)"))
       throw new Error('your code must define controller(state, err, p)');
-    pendingSrc = code;       // promoted to goodSrc once it survives a step
-    showErr(null, true);
-  } catch (err) {
-    py.runPython(goodSrc);   // roll back to the last working controller
-    pendingSrc = null;
-    showErr(lastLine(err.message || err), false);
-  }
+    pendingSrc = code; showErr(null, true); bestAi = null; updateScore();
+  }catch(err){ py.runPython(goodSrc); pendingSrc=null; showErr(lastLine(err.message||err), false); }
 }
 $('btnApply').onclick = () => ready && applyCode();
-$('btnRevert').onclick = () => { $('pycode').value = defaultCtrl; if (ready) applyCode(); };
+$('btnRevert').onclick = () => { $('pycode').value = defaultCtrl; if(ready) applyCode(); };
 
-// ---------- drawing input ----------
-function pos(ev) {
-  const r = cv.getBoundingClientRect();
-  const t = ev.touches ? ev.touches[0] : ev;
-  return [(t.clientX - r.left) * W / r.width, (t.clientY - r.top) * H / r.height];
+// ---------------------------------------------------------------- sound
+let actx=null, engOsc=null, engGain=null, scrGain=null, soundOn=false;
+function initAudio(){
+  if(actx) return;
+  try{
+    actx = new (window.AudioContext||window.webkitAudioContext)();
+    engOsc = actx.createOscillator(); engOsc.type='sawtooth'; engOsc.frequency.value=70;
+    engGain = actx.createGain(); engGain.gain.value=0;
+    const lp = actx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=900;
+    engOsc.connect(lp); lp.connect(engGain); engGain.connect(actx.destination); engOsc.start();
+    const buf = actx.createBuffer(1, actx.sampleRate*2, actx.sampleRate);
+    const d = buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+    const noise = actx.createBufferSource(); noise.buffer=buf; noise.loop=true;
+    const bp = actx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=2200; bp.Q.value=0.8;
+    scrGain = actx.createGain(); scrGain.gain.value=0;
+    noise.connect(bp); bp.connect(scrGain); scrGain.connect(actx.destination); noise.start();
+  }catch(e){ actx=null; }
 }
-function down(ev) { ev.preventDefault(); drawing = true; raw = [pos(ev)]; track = null; running = false; car = null; trail = []; hint.style.display = 'none'; render(); }
-function move(ev) { if (!drawing) return; ev.preventDefault(); const p = pos(ev); const q = raw[raw.length - 1]; if (Math.hypot(p[0]-q[0], p[1]-q[1]) > 2) { raw.push(p); render(); } }
-function up(ev) { if (!drawing) return; drawing = false; finishTrack(); }
-cv.addEventListener('mousedown', down); cv.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
-cv.addEventListener('touchstart', down, { passive: false }); cv.addEventListener('touchmove', move, { passive: false }); cv.addEventListener('touchend', up);
-
-// ---------- track building ----------
-function finishTrack() {
-  if (raw.length < 20) { raw = []; hint.style.display = ''; hint.textContent = 'Too short — draw a bigger loop'; render(); return; }
-  // close the loop
-  let pts = raw.slice();
-  // resample by arc length
-  const spacing = 6;
-  const closed = pts.concat([pts[0]]);
-  let res = [], acc = 0;
-  res.push(closed[0]);
-  for (let i = 1; i < closed.length; i++) {
-    let [ax, ay] = closed[i-1], [bx, by] = closed[i];
-    let seg = Math.hypot(bx-ax, by-ay);
-    while (acc + seg >= spacing) {
-      const t = (spacing - acc) / seg;
-      const nx = ax + (bx-ax)*t, ny = ay + (by-ay)*t;
-      res.push([nx, ny]); ax = nx; ay = ny; seg = Math.hypot(bx-ax, by-ay); acc = 0;
-    }
-    acc += seg;
-  }
-  if (res.length > 3 && Math.hypot(res[res.length-1][0]-res[0][0], res[res.length-1][1]-res[0][1]) < spacing*0.5) res.pop();
-  // smooth (circular moving average, 3 passes)
-  for (let pass = 0; pass < 3; pass++) {
-    const n = res.length, out = [];
-    for (let i = 0; i < n; i++) {
-      let sx = 0, sy = 0;
-      for (let k = -3; k <= 3; k++) { const p = res[(i+k+n)%n]; sx += p[0]; sy += p[1]; }
-      out.push([sx/7, sy/7]);
-    }
-    res = out;
-  }
-  if (res.length < 40) { raw = []; hint.style.display = ''; hint.textContent = 'Too short — draw a bigger loop'; render(); return; }
-  track = res;
-  buildCones();
-  if (ready) { pushTrack(); $('btnRun').disabled = false; $('btnReset').disabled = false; st.status.textContent = 'Ready — press Start'; }
-  render();
+function chime(){
+  if(!soundOn||!actx) return;
+  [880,1320,1760].forEach((f,i)=>{
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.type='triangle'; o.frequency.value=f; g.gain.value=0;
+    o.connect(g); g.connect(actx.destination);
+    const t=actx.currentTime+i*0.09;
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.16,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.45); o.start(t); o.stop(t+0.5);
+  });
 }
-function buildCones() {
-  cones = { L: [], R: [] };
-  const n = track.length, every = Math.max(4, Math.round(36 / 6));
-  for (let i = 0; i < n; i += every) {
-    const a = track[(i-1+n)%n], b = track[(i+1)%n];
-    let tx = b[0]-a[0], ty = b[1]-a[1]; const d = Math.hypot(tx, ty) || 1; tx /= d; ty /= d;
-    const nx = -ty, ny = tx; // left normal (screen coords)
-    cones.L.push([track[i][0] + nx*halfW, track[i][1] + ny*halfW]);
-    cones.R.push([track[i][0] - nx*halfW, track[i][1] - ny*halfW]);
-  }
+function beep(f,dur){
+  if(!soundOn||!actx) return;
+  const o=actx.createOscillator(), g=actx.createGain();
+  o.type='square'; o.frequency.value=f; o.connect(g); g.connect(actx.destination);
+  const t=actx.currentTime;
+  g.gain.setValueAtTime(0.10,t); g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  o.start(t); o.stop(t+dur+0.02);
 }
-function pushTrack() {
-  const arr = py.toPy(track);
-  sim.set_track(arr, halfW);
-  arr.destroy();
-  trail = [];
-  car = readState();
-}
-function readState() {
-  const p = sim.state, s = p.toJs();
-  p.destroy();
-  return { x: s[0], y: s[1], phi: s[2], v: s[3], theta: s[4] };
-}
-
-// ---------- controls ----------
-$('btnRun').onclick = () => { if (!track || !ready) return; running = !running; $('btnRun').textContent = running ? '⏸ Pause' : '▶ Start'; st.status.textContent = running ? 'Driving' : 'Paused'; };
-$('btnReset').onclick = () => { if (!track || !ready) return; sim.reset(); trail = []; car = readState(); running = false; $('btnRun').textContent = '▶ Start'; st.status.textContent = 'Ready — press Start'; st.lap.textContent = '–'; st.time.textContent = '0.00 s'; st.best.textContent = '–'; st.off.textContent = '0'; render(); };
-$('btnClear').onclick = () => { raw = []; track = null; car = null; trail = []; running = false; $('btnRun').textContent = '▶ Start'; $('btnRun').disabled = true; $('btnReset').disabled = true; hint.style.display = ''; hint.textContent = 'Draw a loop to begin'; st.status.textContent = ready ? 'Draw a track' : st.status.textContent; render(); };
-$('btnSample').onclick = () => {
-  raw = [];
-  for (let k = 0; k < 400; k++) { const t = 2*Math.PI*k/400; const r = 200 + 60*Math.sin(3*t) + 30*Math.cos(5*t + 1); raw.push([500 + 1.7*r*Math.cos(t), 300 + 1.05*r*Math.sin(t)]); }
-  hint.style.display = 'none'; finishTrack();
+$('btnSound').onclick = () => {
+  initAudio(); soundOn = !soundOn;
+  $('btnSound').textContent = soundOn ? '🔊' : '🔇';
+  $('btnSound').classList.toggle('on', soundOn);
+  if(!soundOn && engGain) engGain.gain.value = 0;
+  if(!soundOn && scrGain) scrGain.gain.value = 0;
 };
-$('width').oninput = e => { halfW = +e.target.value; $('widthv').textContent = halfW; if (track) { buildCones(); if (ready) sim.set_width(halfW); render(); } };
-$('speed').oninput = e => { speedMul = +e.target.value; $('speedv').textContent = speedMul; };
-document.querySelectorAll('.tune input').forEach(inp => {
-  inp.oninput = () => { const k = inp.dataset.p; $(k + 'v').textContent = inp.value; if (ready) sim.set_param(k, +inp.value); };
+
+// ---------------------------------------------------------------- records
+const recKey = () => 'rtlab:' + (curPreset ? curPreset : 'custom:' + hashTrack()) + ':w' + halfW;
+function hashTrack(){
+  let h=0; if(!track) return '0';
+  for(let i=0;i<track.length;i+=7){ h=(h*31 + Math.round(track[i][0])*7 + Math.round(track[i][1]))|0; }
+  return (h>>>0).toString(36);
+}
+function loadRec(){
+  bestYou=null; ghost=null;
+  try{
+    const r = JSON.parse(localStorage.getItem(recKey())||'null');
+    if(r && typeof r.best==='number'){ bestYou=r.best; ghost=r.ghost||null; }
+  }catch(e){}
+}
+function saveRec(){
+  try{ localStorage.setItem(recKey(), JSON.stringify({best:bestYou, ghost:ghost})); }catch(e){}
+}
+
+// ---------------------------------------------------------------- tracks UI
+function buildTrackChips(){
+  const box = $('tracks');
+  box.innerHTML = '<span class="tlabel">Circuits</span>';
+  PRESETS.forEach(p => {
+    const b = document.createElement('button');
+    b.className='chip'; b.dataset.id=p.id;
+    b.innerHTML = p.name + ' <i>' + p.aiBest.toFixed(1) + 's</i>';
+    b.onclick = () => loadPreset(p.id);
+    box.appendChild(b);
+  });
+}
+buildTrackChips();
+function markChip(){
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.id===curPreset));
+}
+function loadPreset(id){
+  const p = PRESETS.find(x=>x.id===id); if(!p) return;
+  const pts=[]; for(let k=0;k<400;k++) pts.push(p.f(2*Math.PI*k/400));
+  raw = fitPts(pts, 46);
+  curPreset = id; refBest = p.aiBest;
+  hint.style.display='none'; finishTrack();
+  markChip();
+}
+
+// ---------------------------------------------------------------- drawing
+function pos(ev){
+  const r = cv.getBoundingClientRect(), t = ev.touches ? ev.touches[0] : ev;
+  return [(t.clientX-r.left)*W/r.width, (t.clientY-r.top)*H/r.height];
+}
+function down(ev){
+  if(mode==='racing'||mode==='countdown') return;
+  ev.preventDefault(); drawing=true; raw=[pos(ev)]; track=null; curPreset=null; refBest=null;
+  mode='idle'; ai=null; pl=null; aiTrail=[]; plTrail=[]; hint.style.display='none'; markChip(); render();
+}
+function move(ev){
+  if(!drawing) return; ev.preventDefault();
+  const p=pos(ev), q=raw[raw.length-1];
+  if(Math.hypot(p[0]-q[0], p[1]-q[1])>2){ raw.push(p); render(); }
+}
+function up(){ if(!drawing) return; drawing=false; finishTrack(); }
+cv.addEventListener('mousedown',down); cv.addEventListener('mousemove',move); window.addEventListener('mouseup',up);
+cv.addEventListener('touchstart',down,{passive:false}); cv.addEventListener('touchmove',move,{passive:false}); cv.addEventListener('touchend',up);
+
+function finishTrack(){
+  if(raw.length<20){ raw=[]; hint.style.display=''; hint.textContent='Too short — draw a bigger loop'; render(); return; }
+  const spacing=6, closed=raw.concat([raw[0]]);
+  let res=[closed[0]], acc=0;
+  for(let i=1;i<closed.length;i++){
+    let [ax,ay]=closed[i-1]; const [bx,by]=closed[i];
+    let seg=Math.hypot(bx-ax,by-ay);
+    while(acc+seg>=spacing){
+      const t=(spacing-acc)/seg, nx=ax+(bx-ax)*t, ny=ay+(by-ay)*t;
+      res.push([nx,ny]); ax=nx; ay=ny; seg=Math.hypot(bx-ax,by-ay); acc=0;
+    }
+    acc+=seg;
+  }
+  if(res.length>3 && Math.hypot(res[res.length-1][0]-res[0][0], res[res.length-1][1]-res[0][1])<spacing*0.5) res.pop();
+  for(let pass=0;pass<3;pass++){
+    const n=res.length, out=[];
+    for(let i=0;i<n;i++){ let sx=0,sy=0; for(let k=-3;k<=3;k++){const p=res[(i+k+n)%n]; sx+=p[0]; sy+=p[1];} out.push([sx/7,sy/7]); }
+    res=out;
+  }
+  if(res.length<40){ raw=[]; hint.style.display=''; hint.textContent='Too short — draw a bigger loop'; render(); return; }
+  track=res; buildCones(); loadRec(); bestAi=null;
+  if(ready) pushTrack();
+  mode='idle'; syncButtons(); updateScore(); render();
+  setStatus('Ready', 'press Race the AI');
+}
+function buildCones(){
+  cones={L:[],R:[]};
+  const n=track.length;
+  for(let i=0;i<n;i+=6){
+    const a=track[(i-1+n)%n], b=track[(i+1)%n];
+    let tx=b[0]-a[0], ty=b[1]-a[1]; const d=Math.hypot(tx,ty)||1; tx/=d; ty/=d;
+    cones.L.push([track[i][0]-ty*halfW, track[i][1]+tx*halfW]);
+    cones.R.push([track[i][0]+ty*halfW, track[i][1]-tx*halfW]);
+  }
+}
+function pushTrack(){
+  const arr = py.toPy(track);
+  aiSim.set_track(arr, halfW); plSim.set_track(arr, halfW);
+  arr.destroy();
+  aiSim.reset(11); plSim.reset(-11);
+  ai = readSim(aiSim); pl = readSim(plSim); aiTrail=[]; plTrail=[];
+}
+function readSim(s){ const p=s.state, a=p.toJs(); p.destroy(); return {x:a[0],y:a[1],phi:a[2],v:a[3],theta:a[4]}; }
+
+// ---------------------------------------------------------------- controls
+function setStatus(a,b){ $('sbStatus').textContent=a; $('sbSub').textContent=b||''; }
+function syncButtons(){
+  const ok = ready && !!track;
+  $('btnRace').disabled=!ok; $('btnWatch').disabled=!ok; $('btnReset').disabled=!ok; $('btnShare').disabled=!track;
+}
+function startRun(racing){
+  if(!ready||!track) return;
+  initAudio();
+  aiSim.reset(racing?11:0); plSim.reset(-11);
+  ai=readSim(aiSim); pl=readSim(plSim); aiTrail=[]; plTrail=[]; ghostRec=[]; ghostT=0; lapT0=0;
+  confetti=[]; flash=null;
+  mode = racing ? 'countdown' : 'watching';
+  countdown = racing ? 3.2 : 0;
+  $('dpad').classList.toggle('show', racing);
+  setStatus(racing?'Get ready…':'AI running', racing?'arrow keys or WASD':'');
+  if(racing) beep(660,0.12);
+}
+$('btnRace').onclick = () => startRun(true);
+$('btnWatch').onclick = () => startRun(false);
+$('btnReset').onclick = () => { mode='idle'; $('dpad').classList.remove('show'); if(ready&&track){ aiSim.reset(0); plSim.reset(-11); ai=readSim(aiSim); pl=readSim(plSim); aiTrail=[]; plTrail=[]; } setStatus('Ready','press Race the AI'); render(); };
+$('btnClear').onclick = () => { raw=[]; track=null; curPreset=null; refBest=null; ai=null; pl=null; aiTrail=[]; plTrail=[]; mode='idle'; markChip(); $('dpad').classList.remove('show'); hint.style.display=''; hint.textContent='Drag on the canvas to draw your own circuit'; syncButtons(); updateScore(); render(); };
+
+const KEYMAP = {ArrowLeft:'left', ArrowRight:'right', ArrowUp:'up', ArrowDown:'down',
+                a:'left', d:'right', w:'up', s:'down', A:'left', D:'right', W:'up', S:'down'};
+function keyHandler(down){
+  return e => {
+    if(document.activeElement && document.activeElement.tagName==='TEXTAREA') return;
+    const k = KEYMAP[e.key]; if(!k) return;
+    keys[k]=down;
+    if(mode==='racing'||mode==='countdown') e.preventDefault();
+  };
+}
+window.addEventListener('keydown', keyHandler(true));
+window.addEventListener('keyup', keyHandler(false));
+document.querySelectorAll('.dbtn').forEach(b=>{
+  const k=b.dataset.k;
+  const on=e=>{e.preventDefault(); keys[k]=true;}, off=e=>{e.preventDefault(); keys[k]=false;};
+  b.addEventListener('touchstart',on,{passive:false}); b.addEventListener('touchend',off);
+  b.addEventListener('mousedown',on); b.addEventListener('mouseup',off); b.addEventListener('mouseleave',off);
 });
 
-// ---------- main loop ----------
-let last = performance.now(), look = null, kap = 0;
-function frame(now) {
-  const dtReal = Math.min(0.05, (now - last) / 1000); last = now;
-  if (running && ready && track) {
-    const sub = 3 * speedMul;
-    let proxy;
-    try {
-      proxy = sim.step(sub, dtReal / 3);
-    } catch (err) {                      // user controller blew up mid-drive
-      running = false; $('btnRun').textContent = '▶ Start';
-      st.status.textContent = 'Controller error';
-      // keep the user's code in the editor so they can fix it, but drive with the last good one
-      try { py.runPython(goodSrc); } catch (e) {}
-      pendingSrc = null;
-      showErr(lastLine(err.message || err) + ' — rolled back to last working controller', false);
-      sim.reset(); trail = []; car = readState();
+document.querySelectorAll('.tune input[data-p]').forEach(inp=>{
+  inp.oninput = () => {
+    const k=inp.dataset.p; $(k+'v').textContent=inp.value;
+    if(ready){ aiSim.set_param(k,+inp.value); plSim.set_param(k,+inp.value); }
+    bestAi=null; bestYou=null; ghost=null; updateScore();
+  };
+});
+$('width').oninput = e => {
+  halfW=+e.target.value; $('widthv').textContent=halfW;
+  if(track){ buildCones(); if(ready){ aiSim.set_width(halfW); plSim.set_width(halfW); } loadRec(); updateScore(); render(); }
+};
+$('speed').oninput = e => { speedMul=+e.target.value; $('speedv').textContent=speedMul; };
+
+// ---------------------------------------------------------------- share
+function encodeTrack(pts){
+  const n=Math.min(80, pts.length), b=new Uint8Array(n*2);
+  for(let i=0;i<n;i++){
+    const p=pts[Math.round(i*(pts.length-1)/(n-1))];
+    b[i*2]=Math.max(0,Math.min(255,Math.round(p[0]*255/W)));
+    b[i*2+1]=Math.max(0,Math.min(255,Math.round(p[1]*255/H)));
+  }
+  let s=''; for(const x of b) s+=String.fromCharCode(x);
+  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function decodeTrack(str){
+  try{
+    const s=atob(str.replace(/-/g,'+').replace(/_/g,'/'));
+    const out=[]; for(let i=0;i+1<s.length;i+=2) out.push([s.charCodeAt(i)*W/255, s.charCodeAt(i+1)*H/255]);
+    return out.length>=12 ? out : null;
+  }catch(e){ return null; }
+}
+$('btnShare').onclick = async () => {
+  const u = new URL(location.href); u.search='';
+  if(curPreset) u.searchParams.set('p', curPreset); else u.searchParams.set('t', encodeTrack(track));
+  if(halfW!==30) u.searchParams.set('w', halfW);
+  if(bestYou) u.searchParams.set('b', bestYou.toFixed(2));
+  const link=u.toString();
+  try{ await navigator.clipboard.writeText(link); $('btnShare').textContent='🔗 Link copied!'; }
+  catch(e){ prompt('Copy this challenge link:', link); }
+  setTimeout(()=>{ $('btnShare').textContent='🔗 Challenge a friend'; }, 2200);
+};
+let challengeTime = null;
+(function readURL(){
+  const q = new URLSearchParams(location.search);
+  if(q.get('w')) { halfW=Math.max(18,Math.min(50,+q.get('w'))); $('width').value=halfW; $('widthv').textContent=halfW; }
+  if(q.get('b')) challengeTime = parseFloat(q.get('b'));
+  if(q.get('p') && PRESETS.some(p=>p.id===q.get('p'))) { loadPreset(q.get('p')); return; }
+  if(q.get('t')){ const pts=decodeTrack(q.get('t')); if(pts){ raw=pts; hint.style.display='none'; finishTrack(); } }
+})();
+
+// ---------------------------------------------------------------- scoring
+function fmt(t){ return (t==null||t<0) ? '–' : t.toFixed(2)+'s'; }
+function medalFor(t){
+  const ref = bestAi || refBest; if(!ref||!t) return null;
+  for(const [mult,icon,name] of MEDALS) if(t <= ref*mult) return {icon,name};
+  return {icon:'🏁', name:'Finished'};
+}
+function updateScore(){
+  $('sbYouBest').textContent = 'best ' + fmt(bestYou);
+  $('sbAiBest').textContent  = 'best ' + fmt(bestAi);
+  const ref = bestAi || refBest;
+  $('sbTarget').textContent = challengeTime ? fmt(challengeTime) : fmt(ref);
+  if(challengeTime){
+    $('sbMedal').textContent = bestYou ? (bestYou<=challengeTime ? '✓ challenge beaten' : 'challenge time to beat') : 'challenge time to beat';
+  } else if(bestYou){
+    const m = medalFor(bestYou);
+    const gap = ref ? (bestYou-ref) : null;
+    $('sbMedal').textContent = (m?m.icon+' '+m.name:'') + (gap!=null ? '  ' + (gap>=0?'+':'') + gap.toFixed(2)+'s vs AI' : '');
+  } else { $('sbMedal').textContent = ref ? 'AI reference lap' : 'drive a lap'; }
+}
+function popConfetti(){
+  for(let i=0;i<90;i++) confetti.push({
+    x: pl?pl.x:W/2, y: pl?pl.y:H/2,
+    vx:(Math.random()-0.5)*260, vy:-Math.random()*260-40,
+    c:['#f2c14e','#38bdf8','#4ade80','#f472b6','#fff'][i%5], r:Math.random()*3+2, life:1.6
+  });
+}
+
+// ---------------------------------------------------------------- main loop
+let last = performance.now();
+function frame(now){
+  const dtReal = Math.min(0.05, (now-last)/1000); last = now;
+
+  if(mode==='countdown'){
+    const was = Math.ceil(countdown);
+    countdown -= dtReal;
+    if(Math.ceil(countdown)!==was && countdown>0) beep(660,0.12);
+    if(countdown<=0){ mode='racing'; lapT0=0; beep(1180,0.3); setStatus('Racing','arrow keys or WASD'); }
+  }
+
+  if(mode==='racing'||mode==='watching'){
+    const sub = 3*(mode==='watching'?speedMul:1);
+    let ar=null, pr=null;
+    try{
+      const ap = aiSim.step(sub, dtReal/3); ar = ap.toJs(); ap.destroy();
+      if(mode==='racing'){
+        const thr = keys.up?1:(keys.down?-1:0), str = keys.left?-1:(keys.right?1:0);
+        const pp = plSim.step_manual(sub, dtReal/3, thr, str); pr = pp.toJs(); pp.destroy();
+      }
+    }catch(err){
+      mode='idle'; $('dpad').classList.remove('show');
+      setStatus('Controller error','rolled back');
+      try{ py.runPython(goodSrc); }catch(e){}
+      pendingSrc=null; showErr(lastLine(err.message||err)+' — rolled back to last working controller', false);
       render(); requestAnimationFrame(frame); return;
     }
-    const r = proxy.toJs();
-    proxy.destroy();
-    if (pendingSrc) { goodSrc = pendingSrc; pendingSrc = null; }  // proven at runtime
-    car = { x: r[0], y: r[1], phi: r[2], v: r[3], theta: r[4] };
-    trail.push([r[0], r[1]]); if (trail.length > 600) trail.shift();
-    look = [r[12], r[13]]; kap = r[14];
-    st.lap.textContent = r[8]; st.time.textContent = r[9].toFixed(2) + ' s'; st.best.textContent = r[10] >= 0 ? r[10].toFixed(2) + ' s' : '–';
-    st.speed.textContent = Math.round(r[3]) + ' px/s'; st.lat.textContent = r[5].toFixed(1) + ' px'; st.head.textContent = (r[6]*180/Math.PI).toFixed(1) + '°'; st.off.textContent = r[11];
-    st.status.textContent = Math.abs(r[5]) > halfW ? 'Off track!' : 'Driving';
+    if(pendingSrc){ goodSrc=pendingSrc; pendingSrc=null; }
+
+    ai = {x:ar[0],y:ar[1],phi:ar[2],v:ar[3],theta:ar[4]};
+    aiTrail.push([ar[0],ar[1]]); if(aiTrail.length>420) aiTrail.shift();
+    if(ar[15] && ar[16]>0){ if(bestAi==null||ar[16]<bestAi){ bestAi=ar[16]; } updateScore(); }
+
+    if(pr){
+      pl = {x:pr[0],y:pr[1],phi:pr[2],v:pr[3],theta:pr[4]};
+      plTrail.push([pr[0],pr[1]]); if(plTrail.length>420) plTrail.shift();
+      lapT0 = pr[9];
+      ghostRec.push([pr[9], pr[0], pr[1], pr[2]]);
+      if(ghostRec.length>4000) ghostRec.shift();
+      if(pr[15] && pr[16]>0){
+        const lap = pr[16];
+        if(bestYou==null || lap<bestYou){
+          bestYou = lap;
+          ghost = ghostRec.filter((_,i)=>i%2===0).map(s=>[+s[0].toFixed(2),Math.round(s[1]),Math.round(s[2]),+s[3].toFixed(2)]);
+          saveRec(); popConfetti(); chime();
+          flash = {t:1.8, text:'NEW RECORD  '+lap.toFixed(2)+'s'};
+        } else {
+          flash = {t:1.2, text:'Lap '+lap.toFixed(2)+'s'};
+        }
+        ghostRec=[]; updateScore();
+      }
+      $('sbYou').textContent = fmt(pr[9]);
+      ghostT = pr[9];
+    }
+    $('sbAi').textContent = fmt(ar[9]);
+
+    // engine + screech
+    if(soundOn && actx && engGain){
+      const src = mode==='racing' ? pl : ai;
+      engGain.gain.value = 0.035;
+      engOsc.frequency.value = 55 + (src?src.v:0)*1.15;
+      const slip = src ? Math.abs(src.theta)*src.v/120 : 0;
+      scrGain.gain.value = Math.max(0, Math.min(0.06, (slip-0.45)*0.12));
+    }
   }
+
+  for(const c of confetti){ c.vy+=460*dtReal; c.x+=c.vx*dtReal; c.y+=c.vy*dtReal; c.life-=dtReal; }
+  confetti = confetti.filter(c=>c.life>0);
+  if(flash){ flash.t-=dtReal; if(flash.t<=0) flash=null; }
+
   render();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 
-// ---------- rendering ----------
-function render() {
-  ctx.clearRect(0, 0, W, H);
-  // grass
-  ctx.fillStyle = '#2a2f27'; ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = 'rgba(255,255,255,0.035)'; ctx.lineWidth = 1;
-  for (let x = 0; x < W; x += 50) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-  for (let y = 0; y < H; y += 50) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-  if (!track) {
-    if (raw.length > 1) { ctx.strokeStyle = '#f2c14e'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(raw[0][0], raw[0][1]); for (const p of raw) ctx.lineTo(p[0], p[1]); ctx.stroke(); }
+// ---------------------------------------------------------------- render
+function ghostAt(t){
+  if(!ghost||ghost.length<2) return null;
+  let lo=0, hi=ghost.length-1;
+  if(t<=ghost[0][0]) return ghost[0];
+  if(t>=ghost[hi][0]) return null;
+  while(hi-lo>1){ const m=(lo+hi)>>1; if(ghost[m][0]<=t) lo=m; else hi=m; }
+  const a=ghost[lo], b=ghost[hi], f=(t-a[0])/((b[0]-a[0])||1);
+  return [t, a[1]+(b[1]-a[1])*f, a[2]+(b[2]-a[2])*f, a[3]];
+}
+function drawCar(c, body, roof, alpha){
+  ctx.save(); ctx.globalAlpha=alpha; ctx.translate(c.x,c.y); ctx.rotate(c.phi);
+  ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fillRect(-13,-6,26,12);
+  ctx.fillStyle=body; ctx.fillRect(-12,-5.5,24,11);
+  ctx.fillStyle='#222'; ctx.fillRect(-11,-7,6,2.5); ctx.fillRect(-11,4.5,6,2.5);
+  ctx.save(); ctx.translate(7,-6); ctx.rotate(c.theta); ctx.fillRect(-3,0,6,2.5); ctx.restore();
+  ctx.save(); ctx.translate(7,3.5); ctx.rotate(c.theta); ctx.fillRect(-3,0,6,2.5); ctx.restore();
+  ctx.fillStyle=roof; ctx.fillRect(2,-3,5,6);
+  ctx.restore();
+}
+function render(){
+  ctx.fillStyle='#2a2f27'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,255,255,0.035)'; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=50){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for(let y=0;y<H;y+=50){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  if(!track){
+    if(raw.length>1){
+      ctx.strokeStyle='#f2c14e'; ctx.lineWidth=3; ctx.lineJoin='round'; ctx.lineCap='round';
+      ctx.beginPath(); ctx.moveTo(raw[0][0],raw[0][1]); for(const p of raw) ctx.lineTo(p[0],p[1]); ctx.stroke();
+    }
     return;
   }
-  // asphalt
-  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  const path = new Path2D(); path.moveTo(track[0][0], track[0][1]); for (const p of track) path.lineTo(p[0], p[1]); path.closePath();
-  ctx.strokeStyle = '#4a4a4a'; ctx.lineWidth = halfW*2 + 6; ctx.stroke(path);
-  ctx.strokeStyle = '#3a3a3a'; ctx.lineWidth = halfW*2; ctx.stroke(path);
-  ctx.setLineDash([10, 12]); ctx.strokeStyle = 'rgba(255,255,255,0.28)'; ctx.lineWidth = 2; ctx.stroke(path); ctx.setLineDash([]);
-  // start / finish
-  const a = track[0], b = track[1]; let tx = b[0]-a[0], ty = b[1]-a[1]; const d = Math.hypot(tx, ty)||1; tx/=d; ty/=d;
-  const cell = (halfW*2)/8;
-  ctx.save(); ctx.translate(a[0], a[1]); ctx.rotate(Math.atan2(ty, tx));
-  for (let col = 0; col < 2; col++) for (let row = 0; row < 8; row++) {
-    ctx.fillStyle = ((col + row) % 2 === 0) ? '#f0f0f0' : '#1b1b1b';
-    ctx.fillRect(col*cell - cell, row*cell - halfW, cell + 0.5, cell + 0.5);
+
+  ctx.lineJoin='round'; ctx.lineCap='round';
+  const path=new Path2D(); path.moveTo(track[0][0],track[0][1]);
+  for(const p of track) path.lineTo(p[0],p[1]); path.closePath();
+  ctx.strokeStyle='#4a4a4a'; ctx.lineWidth=halfW*2+6; ctx.stroke(path);
+  ctx.strokeStyle='#3a3a3a'; ctx.lineWidth=halfW*2; ctx.stroke(path);
+  ctx.setLineDash([10,12]); ctx.strokeStyle='rgba(255,255,255,0.28)'; ctx.lineWidth=2; ctx.stroke(path); ctx.setLineDash([]);
+
+  const a=track[0], b=track[1]; let tx=b[0]-a[0], ty=b[1]-a[1];
+  const d=Math.hypot(tx,ty)||1; tx/=d; ty/=d; const cell=(halfW*2)/8;
+  ctx.save(); ctx.translate(a[0],a[1]); ctx.rotate(Math.atan2(ty,tx));
+  for(let col=0;col<2;col++) for(let row=0;row<8;row++){
+    ctx.fillStyle=((col+row)%2===0)?'#f0f0f0':'#1b1b1b';
+    ctx.fillRect(col*cell-cell, row*cell-halfW, cell+0.5, cell+0.5);
   }
   ctx.restore();
-  // cones
-  for (const c of cones.L) { ctx.fillStyle = '#3b82f6'; ctx.beginPath(); ctx.arc(c[0], c[1], 3.2, 0, 7); ctx.fill(); }
-  for (const c of cones.R) { ctx.fillStyle = '#f97316'; ctx.beginPath(); ctx.arc(c[0], c[1], 3.2, 0, 7); ctx.fill(); }
-  // trail
-  if (trail.length > 1) { ctx.strokeStyle = 'rgba(242,193,78,0.55)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(trail[0][0], trail[0][1]); for (const p of trail) ctx.lineTo(p[0], p[1]); ctx.stroke(); }
-  // lookahead
-  if (car && look && running) { ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.setLineDash([3, 4]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(car.x, car.y); ctx.lineTo(look[0], look[1]); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(look[0], look[1], 2.5, 0, 7); ctx.fill(); }
-  // car
-  if (car) {
-    ctx.save(); ctx.translate(car.x, car.y); ctx.rotate(car.phi);
-    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(-13, -6, 26, 12);
-    ctx.fillStyle = '#f2c14e'; ctx.fillRect(-12, -5.5, 24, 11);
-    ctx.fillStyle = '#222'; ctx.fillRect(-11, -7, 6, 2.5); ctx.fillRect(-11, 4.5, 6, 2.5);
-    ctx.save(); ctx.translate(7, -6); ctx.rotate(car.theta); ctx.fillRect(-3, 0, 6, 2.5); ctx.restore();
-    ctx.save(); ctx.translate(7, 3.5); ctx.rotate(car.theta); ctx.fillRect(-3, 0, 6, 2.5); ctx.restore();
-    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(2, -3, 5, 6);
-    ctx.restore();
+
+  for(const c of cones.L){ ctx.fillStyle='#3b82f6'; ctx.beginPath(); ctx.arc(c[0],c[1],3.2,0,7); ctx.fill(); }
+  for(const c of cones.R){ ctx.fillStyle='#f97316'; ctx.beginPath(); ctx.arc(c[0],c[1],3.2,0,7); ctx.fill(); }
+
+  if(aiTrail.length>1){ ctx.strokeStyle='rgba(242,193,78,0.45)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(aiTrail[0][0],aiTrail[0][1]); for(const p of aiTrail) ctx.lineTo(p[0],p[1]); ctx.stroke(); }
+  if(plTrail.length>1){ ctx.strokeStyle='rgba(56,189,248,0.45)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(plTrail[0][0],plTrail[0][1]); for(const p of plTrail) ctx.lineTo(p[0],p[1]); ctx.stroke(); }
+
+  if(mode==='racing'){
+    const g = ghostAt(ghostT);
+    if(g) drawCar({x:g[1],y:g[2],phi:g[3],theta:0}, '#9ca3af', '#6b7280', 0.35);
   }
+  if(ai) drawCar(ai, '#f2c14e', '#1a1a1a', 1);
+  if(pl && (mode==='racing'||mode==='countdown')) drawCar(pl, '#38bdf8', '#0b2230', 1);
+
+  if(mode==='countdown'){
+    const n = Math.ceil(countdown);
+    ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fillRect(0,0,W,H);
+    for(let i=0;i<3;i++){
+      ctx.beginPath(); ctx.arc(W/2-70+i*70, H/2-70, 24, 0, 7);
+      ctx.fillStyle = (3-i) >= n ? '#ef4444' : '#3f3f3f'; ctx.fill();
+    }
+    ctx.fillStyle='#fff'; ctx.font='700 64px Figtree, sans-serif'; ctx.textAlign='center';
+    ctx.fillText(n>0?String(n):'GO!', W/2, H/2+40); ctx.textAlign='left';
+  }
+  if(flash){
+    ctx.globalAlpha=Math.min(1,flash.t);
+    ctx.fillStyle='#f2c14e'; ctx.font='700 40px Figtree, sans-serif'; ctx.textAlign='center';
+    ctx.fillText(flash.text, W/2, 90); ctx.textAlign='left'; ctx.globalAlpha=1;
+  }
+  for(const c of confetti){ ctx.globalAlpha=Math.max(0,Math.min(1,c.life)); ctx.fillStyle=c.c; ctx.fillRect(c.x,c.y,c.r,c.r); }
+  ctx.globalAlpha=1;
 }
 render();
+updateScore();
 })();
 </script>

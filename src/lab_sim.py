@@ -1,23 +1,27 @@
-# Autonomous racetrack simulator — runs in the browser via Pyodide.
+# Racetrack Lab simulator — runs in the browser via Pyodide.
 # Vehicle: kinematic bicycle model. State = [x, y, phi (heading), v, theta (steer angle)].
-# Controls  = [a (accel), theta_dot (steer rate)]. Units: pixels, seconds, radians.
+# The SAME model drives the autonomous car and the human-driven car, so the race is fair.
+# Units: pixels, seconds, radians.
 import math
 
 PARAMS = dict(
-    K_h=2.4,          # heading-error gain
-    K_l=0.035,        # lateral-error gain (rad per px)
+    K_h=2.5,          # heading-error gain
+    K_l=0.030,        # lateral-error gain (rad per px)
     K_s=9.0,          # steering-rate gain (rad/s per rad)
     K_v=1.6,          # speed P gain
-    v_max=190.0,      # px/s
-    a_lat=280.0,      # max lateral accel budget for corner speed, px/s^2
+    v_max=190.0,      # px/s, hard cap for both cars
+    a_lat=280.0,      # lateral accel budget used to pick corner speed, px/s^2
     a_max=140.0,      # accel limit, px/s^2
     b_max=260.0,      # braking limit, px/s^2
     L=22.0,           # wheelbase, px
     theta_max=0.6,    # max steer angle, rad
     thetadot_max=4.0, # max steer rate, rad/s
-    lookahead=16.0,   # px ahead for heading target (scaled by speed)
-    look_v=0.10,      # extra lookahead per px/s of speed
-    ahead_pts=28,     # points scanned ahead for corner curvature
+    lookahead=16.0,   # px ahead for the heading target (grows with speed)
+    look_v=0.45,      # lookahead grows with speed - too short here and the car oscillates
+    ahead_pts=28,     # centerline points scanned ahead for corner curvature
+    grass_drag=2.2,   # velocity decay per second off track
+    v_grass=70.0,     # speed cap off track
+    center_spring=6.0 # steering self-centering for the human driver
 )
 
 
@@ -32,8 +36,11 @@ def controller(state, err, p):
            e_lat  (px, +ve = car is left of the centerline), kappa_ahead (1/px)
     """
     x, y, phi, v, theta = state
-    # Steering: point at the lookahead target, and pull back toward the centerline
-    theta_des = p['K_h'] * err['e_head'] - p['K_l'] * err['e_lat']
+    # Feedforward: the steer angle the corner itself needs, theta = atan(L * curvature).
+    # Without this a pure P controller always rides wide through a constant-radius corner.
+    theta_ff = math.atan(p['L'] * err['kappa_here'])
+    # Feedback: point at the lookahead target, and pull back toward the centerline
+    theta_des = theta_ff + p['K_h'] * err['e_head'] - p['K_l'] * err['e_lat']
     theta_des = max(-p['theta_max'], min(p['theta_max'], theta_des))
     theta_dot = p['K_s'] * (theta_des - theta)
     # Speed: slow down for the tightest corner coming up (v = sqrt(a_lat / kappa))
@@ -50,15 +57,17 @@ class Sim:
         self.kappa = []
         self.n = 0
         self.half_w = 30.0
+        self.offset = 0.0
         self.state = [0.0, 0.0, 0.0, 0.0, 0.0]
         self.idx = 0
         self.laps = 0
         self.lap_time = 0.0
         self.best_lap = None
+        self.last_lap = None
+        self.lap_done = 0
         self.t = 0.0
         self.off_track = 0
         self.was_off = False
-        self.running = False
         self.started = False
 
     # ---- track -------------------------------------------------------------
@@ -69,6 +78,7 @@ class Sim:
         n = self.n
         self.tan = []
         self.kappa = []
+        self.kappa_s = []
         for i in range(n):
             x0, y0 = self.track[(i - 1) % n]
             x1, y1 = self.track[(i + 1) % n]
@@ -83,17 +93,23 @@ class Sim:
             x1, y1 = self.track[(i + 1) % n]
             ds = math.hypot(x1 - x0, y1 - y0) or 1.0
             self.kappa.append(abs(dphi) / ds)
-        self.reset()
+            self.kappa_s.append(dphi / ds)
+        self.reset(self.offset)
 
-    def reset(self):
+    def reset(self, offset=0.0):
+        self.offset = float(offset)
         if self.n:
             x, y = self.track[0]
             tx, ty = self.tan[0]
-            self.state = [x, y, math.atan2(ty, tx), 0.0, 0.0]
+            nx, ny = -ty, tx           # left normal in screen coords
+            self.state = [x + nx * self.offset, y + ny * self.offset,
+                          math.atan2(ty, tx), 0.0, 0.0]
         self.idx = 0
         self.laps = 0
         self.lap_time = 0.0
         self.best_lap = None
+        self.last_lap = None
+        self.lap_done = 0
         self.t = 0.0
         self.off_track = 0
         self.was_off = False
@@ -109,14 +125,13 @@ class Sim:
     def closest(self, x, y):
         n = self.n
         best, bi = 1e18, self.idx
-        # local window first (fast, avoids jumping across the track)
-        for k in range(-20, 41):
+        for k in range(-20, 41):                 # local window: fast, no track jumping
             i = (self.idx + k) % n
             px, py = self.track[i]
             d = (px - x) ** 2 + (py - y) ** 2
             if d < best:
                 best, bi = d, i
-        if best > (self.half_w * 4) ** 2:  # lost: global search
+        if best > (self.half_w * 4) ** 2:        # lost the track: global search
             for i in range(n):
                 px, py = self.track[i]
                 d = (px - x) ** 2 + (py - y) ** 2
@@ -128,11 +143,10 @@ class Sim:
         i = self.closest(x, y)
         px, py = self.track[i]
         tx, ty = self.tan[i]
-        e_lat = tx * (y - py) - ty * (x - px)          # signed cross product
+        e_lat = tx * (y - py) - ty * (x - px)    # signed cross product
         look = self.p['lookahead'] + self.p['look_v'] * v
-        # walk forward along the centerline by `look` px
         j, acc = i, 0.0
-        while acc < look:
+        while acc < look:                        # walk forward along the centerline
             k = (j + 1) % self.n
             ax, ay = self.track[j]
             bx, by = self.track[k]
@@ -145,50 +159,91 @@ class Sim:
         kap = 0.0
         for k in range(int(self.p['ahead_pts'])):
             kap = max(kap, self.kappa[(i + k) % self.n])
-        return i, dict(e_lat=e_lat, e_head=e_head, kappa_ahead=kap, look=(lx, ly))
+        return i, dict(e_lat=e_lat, e_head=e_head, kappa_ahead=kap,
+                       kappa_here=self.kappa_s[i], look=(lx, ly))
 
     # ---- integration --------------------------------------------------------
-    def step(self, n_sub, dt):
+    def _advance(self, a, thd, dt, on_grass):
         p = self.p
-        out = None
+        x, y, phi, v, theta = self.state
+        a = max(-p['b_max'], min(p['a_max'], a))
+        thd = max(-p['thetadot_max'], min(p['thetadot_max'], thd))
+        x += v * math.cos(phi) * dt
+        y += v * math.sin(phi) * dt
+        phi = wrap(phi + (v / p['L']) * math.tan(theta) * dt)
+        v = max(0.0, v + a * dt)
+        if on_grass:
+            v *= max(0.0, 1.0 - p['grass_drag'] * dt)
+            v = min(v, p['v_grass'])
+        v = min(v, p['v_max'])
+        theta = max(-p['theta_max'], min(p['theta_max'], theta + thd * dt))
+        self.state = [x, y, phi, v, theta]
+
+    def _bookkeep(self, i, e_lat, dt):
+        prev = self.idx
+        self.idx = i
+        self.t += dt
+        if self.started:
+            self.lap_time += dt
+        if prev > self.n * 0.85 and i < self.n * 0.15:
+            if self.started:
+                self.laps += 1
+                self.last_lap = self.lap_time
+                if self.best_lap is None or self.lap_time < self.best_lap:
+                    self.best_lap = self.lap_time
+                self.lap_done = 1
+                self.lap_time = 0.0
+            self.started = True
+        elif not self.started and i > 2:
+            self.started = True
+            self.lap_time = 0.0
+        off = abs(e_lat) > self.half_w
+        if off and not self.was_off:
+            self.off_track += 1
+        self.was_off = off
+        return off
+
+    def _pack(self, err, on_grass):
+        x, y, phi, v, theta = self.state
+        out = [x, y, phi, v, theta, err['e_lat'], err['e_head'], self.idx, self.laps,
+               self.lap_time,
+               self.best_lap if self.best_lap is not None else -1.0,
+               self.off_track, err['look'][0], err['look'][1], err['kappa_ahead'],
+               self.lap_done,
+               self.last_lap if self.last_lap is not None else -1.0,
+               1.0 if on_grass else 0.0,
+               (self.idx / self.n) if self.n else 0.0]
+        self.lap_done = 0
+        return out
+
+    def step(self, n_sub, dt):
+        """Autonomous car: control comes from controller()."""
+        err, on_grass = None, False
         for _ in range(n_sub):
             x, y, phi, v, theta = self.state
             i, err = self.errors(x, y, phi, v)
-            a, thd = controller((x, y, phi, v, theta), err, p)
-            a = max(-p['b_max'], min(p['a_max'], a))
-            thd = max(-p['thetadot_max'], min(p['thetadot_max'], thd))
-            # integrate kinematic bicycle
-            x += v * math.cos(phi) * dt
-            y += v * math.sin(phi) * dt
-            phi = wrap(phi + (v / p['L']) * math.tan(theta) * dt)
-            v = max(0.0, v + a * dt)
-            theta = max(-p['theta_max'], min(p['theta_max'], theta + thd * dt))
-            self.state = [x, y, phi, v, theta]
-            # lap / progress bookkeeping
-            prev = self.idx
-            self.idx = i
-            self.t += dt
-            if self.started:
-                self.lap_time += dt
-            if prev > self.n * 0.85 and i < self.n * 0.15:
-                if self.started:
-                    self.laps += 1
-                    if self.best_lap is None or self.lap_time < self.best_lap:
-                        self.best_lap = self.lap_time
-                    self.lap_time = 0.0
-                self.started = True
-            elif not self.started and i > 2:
-                self.started = True
-                self.lap_time = 0.0
-            off = abs(err['e_lat']) > self.half_w
-            if off and not self.was_off:
-                self.off_track += 1
-            self.was_off = off
-            out = err
-        x, y, phi, v, theta = self.state
-        return [x, y, phi, v, theta, out['e_lat'], out['e_head'], self.idx, self.laps,
-                self.lap_time, self.best_lap if self.best_lap is not None else -1.0,
-                self.off_track, out['look'][0], out['look'][1], out['kappa_ahead']]
+            a, thd = controller((x, y, phi, v, theta), err, self.p)
+            on_grass = self._bookkeep(i, err['e_lat'], dt)
+            self._advance(a, thd, dt, on_grass)
+        return self._pack(err, on_grass)
+
+    def step_manual(self, n_sub, dt, throttle, steer):
+        """Human-driven car: same model, control comes from the keyboard."""
+        p = self.p
+        err, on_grass = None, False
+        for _ in range(n_sub):
+            x, y, phi, v, theta = self.state
+            i, err = self.errors(x, y, phi, v)
+            a = throttle * (p['a_max'] if throttle >= 0 else p['b_max'])
+            if steer == 0.0:
+                thd = -p['center_spring'] * theta          # self-centering
+            else:
+                thd = steer * p['thetadot_max']
+            on_grass = self._bookkeep(i, err['e_lat'], dt)
+            self._advance(a, thd, dt, on_grass)
+        return self._pack(err, on_grass)
 
 
 sim = Sim()
+
+psim = Sim()   # second instance: the human-driven car
