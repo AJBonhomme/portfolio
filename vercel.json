@@ -1,3 +1,20 @@
 {
-  "cleanUrls": true
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/obstacle-avoiding-rc-car",
+      "destination": "/small-projects",
+      "permanent": true
+    },
+    {
+      "source": "/rc-car-iterations",
+      "destination": "/small-projects",
+      "permanent": true
+    },
+    {
+      "source": "/handheld-distance-finder",
+      "destination": "/small-projects",
+      "permanent": true
+    }
+  ]
 }

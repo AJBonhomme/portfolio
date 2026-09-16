@@ -356,9 +356,23 @@ page("racetrack.html", f"{SITE['name']} — Racetrack Lab",
      "Draw a racetrack with your mouse and watch a car driven by a live Python path-following controller try to lap it.",
      "racetrack", lab, og=cover_thumb(*PROJECTS[1]["cover"]))
 
+# remove pages from earlier builds that no longer correspond to anything
+expected = {"index.html", "about.html", "contact.html", "racetrack.html"} | {p["slug"] + ".html" for p in PROJECTS}
+for stale in glob.glob(os.path.join(OUT, "*.html")):
+    if os.path.basename(stale) not in expected:
+        os.remove(stale)
+        print("removed stale page:", os.path.basename(stale))
+
 with open(os.path.join(OUT, "style.css"), "w") as f: f.write(CSS)
 with open(os.path.join(OUT, "favicon.svg"), "w") as f:
     f.write('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#333"/><text x="32" y="43" font-family="Georgia,serif" font-size="32" fill="#fff" text-anchor="middle">AB</text></svg>')
 with open(os.path.join(OUT, "vercel.json"), "w") as f:
-    f.write('{\n  "cleanUrls": true\n}\n')
+    import json as _json
+    f.write(_json.dumps({
+        "cleanUrls": True,
+        "redirects": [
+            {"source": "/" + old, "destination": "/small-projects", "permanent": True}
+            for old in ("obstacle-avoiding-rc-car", "rc-car-iterations", "handheld-distance-finder")
+        ],
+    }, indent=2) + "\n")
 print("built", OUT, "images:", len(os.listdir(IMG)))
