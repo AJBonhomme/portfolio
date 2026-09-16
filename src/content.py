@@ -286,7 +286,7 @@ PROJECTS = [
         "slug": "small-projects",
         "title": "Small Projects",
         "year": "2023 – 2024",
-        "cover": ("personal", "2c34f9d18b"),
+        "cover": ("personal", "b807b5969f"),
         "subtitle": "Arduino, 3D printing and self-taught electronics",
         "intro": [
             "Before the go-kart and the race team, there was a pile of small builds on a desk. I taught myself electronics and robotics from the ground up here — starting with an LED and a button, working up to a 3D-printed car that paths around obstacles on its own. Each one is small, but the progression is the point: every version failed at something specific, and the next one fixed it.",
