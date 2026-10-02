@@ -414,3 +414,43 @@ PROJECTS = [
         ],
     },
 ]
+
+# ---------------------------------------------------------------------------
+# Homepage + card metadata (used by the redesigned layout)
+
+HERO = {
+    "kicker": "Mechanical Engineering · UC Berkeley '28",
+    # trusted, author-written HTML
+    "lede_html": "Building autonomous machines — from race cars to subsea robots. "
+                 "Currently on <b>autonomy &amp; powertrain at Berkeley Formula Racing</b>; "
+                 "previously rebuilt autonomous underwater vehicles at <b>SeeByte</b>.",
+}
+
+# (big number as trusted HTML, label) - every figure is on the résumé or a project page
+STATS = [
+    ("5<em>th</em>", "National finish, Autonomous Karting Series"),
+    ("20", "Engineers led as MesaFSD founder"),
+    ("2", "Subsea robots rebuilt at SeeByte"),
+    ("3.95", "GPA, Mechanical Engineering"),
+]
+
+FILTERS = [
+    ("all", "All"),
+    ("autonomy", "Autonomy & Controls"),
+    ("mech", "Mechanical & FEA"),
+    ("elec", "Electrical & Embedded"),
+    ("fab", "Fabrication"),
+]
+
+# slug -> (tags shown on the card and project header, filter groups)
+TAGS = {
+    "feb-differential-mount":        (["Powertrain", "FEA", "SolidWorks"],          ["mech"]),
+    "feb-path-following-controller": (["Controls", "Python", "Vehicle dynamics"],   ["autonomy"]),
+    "bfr-engine-mount":              (["Chassis", "FEA", "4130 steel"],             ["mech"]),
+    "seebyte-hovering-auv":          (["Autonomy", "Sensor fusion", "Subsea"],      ["autonomy", "elec", "mech"]),
+    "mesafsd-autonomous-go-kart":    (["Autonomy", "Leadership", "Embedded"],       ["autonomy", "elec", "fab"]),
+    "derconnect-microgrid-research": (["Controls", "HIL simulation", "Research"],   ["autonomy", "elec"]),
+    "derconnect-microgrid-pcb":      (["PCB design", "ESP32", "KiCad"],             ["elec"]),
+    "off-road-go-kart":              (["Fabrication", "MIG welding", "Fusion 360"], ["fab", "mech"]),
+    "small-projects":                (["Arduino", "3D printing", "Sensors"],        ["elec", "fab"]),
+}

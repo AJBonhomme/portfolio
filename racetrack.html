@@ -5,34 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Antoine Bonhomme — Racetrack Lab</title>
 <meta name="description" content="Draw a racetrack with your mouse and watch a car driven by a live Python path-following controller try to lap it.">
+<meta name="theme-color" content="#0b0c0e">
 <meta property="og:title" content="Antoine Bonhomme — Racetrack Lab">
 <meta property="og:description" content="Draw a racetrack with your mouse and watch a car driven by a live Python path-following controller try to lap it.">
 <meta property="og:image" content="/img/feb_autonomous-4bce310200-cover.jpg">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<div class="layout">
-<aside class="side">
-<a class="name" href="/">Antoine Bonhomme</a>
-<span class="tag">Mechanical Engineering @ UC Berkeley</span>
-<nav>
-<a href="/about">About Me</a>
-<a href="/">Work</a>
-<a href="/racetrack" class=active>Racetrack Lab</a>
-<a href="/contact">Contact</a>
-<button class="mtoggle" type="button" onclick="this.parentNode.classList.toggle('open')">Projects</button>
-<div class="plist"><div class="label">Work</div>
-<a href="/feb-differential-mount">FEB Differential Mount</a><a href="/feb-path-following-controller">FEB Path-Following Controller</a><a href="/bfr-engine-mount">BFR Engine Mount</a><a href="/seebyte-hovering-auv">SeeByte Hovering AUV Retrofit</a><a href="/mesafsd-autonomous-go-kart">MesaFSD Autonomous Go-Kart</a><a href="/derconnect-microgrid-research">DERConnect Microgrid Research</a><a href="/derconnect-microgrid-pcb">Decentralized Microgrid PCB</a><a href="/off-road-go-kart">Off-Road Go-Kart Build</a><a href="/small-projects">Small Projects</a>
-</div>
-</nav>
-<div class="foot"><a href="/AntoineBonhomme_Resume.pdf" target="_blank" rel="noopener">Resume ↗</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/antoine-bonhomme-5b210a320/" target="_blank" rel="noopener">LinkedIn ↗</a></div>
-</aside>
-<main class="main" id="top">
-<article class="lab">
+<header class="hdr" id="top"><div class="wrap"><a class="brand" href="/"><span class="plate">AB</span><span>Antoine Bonhomme</span></a><button class="menu" type="button" aria-expanded="false" onclick="var h=this.closest('.hdr');h.classList.toggle('open');this.setAttribute('aria-expanded',h.classList.contains('open'))">Menu</button><nav class="nav"><a href="/">Work</a><a href="/racetrack" class="on"><i class="live"></i>Racetrack Lab</a><a href="/about">About</a><a href="/contact">Contact</a><a class="cv" href="/AntoineBonhomme_Resume.pdf" target="_blank" rel="noopener">Résumé ↗</a></nav></div></header>
+<main>
+<div class="wrap labwrap"><article class="lab">
 <h1>Racetrack Lab</h1>
 <p class="sub">Draw a track. Race the autonomous car. · Experimental</p>
 <div class="intro"><p>Pick a circuit or draw your own with the mouse, then race the yellow car around it. It's driven by a <em>real Python</em> controller running in your browser — a kinematic bicycle model with heading and lateral-error feedback, the same approach I built for Formula Electric at Berkeley. <b>Arrow keys</b> or <b>WASD</b> to drive. Beat it if you can.</p></div>
@@ -866,8 +852,40 @@ render();
 updateScore();
 })();
 </script>
-<a class="top" href="#top">Back to top</a>
-</main>
 </div>
+</main>
+<footer class="foot"><div class="wrap"><div class="kicker">Get in touch</div><h2><a href="mailto:antoine.bonh@gmail.com">Let’s build<br>something.</a></h2><div class="links"><a href="mailto:antoine.bonh@gmail.com">Email</a><a href="https://www.linkedin.com/in/antoine-bonhomme-5b210a320/" target="_blank" rel="noopener">LinkedIn ↗</a><a href="https://github.com/AJBonhomme" target="_blank" rel="noopener">GitHub ↗</a><a href="/AntoineBonhomme_Resume.pdf" target="_blank" rel="noopener">Résumé ↗</a><a href="/racetrack">Race the AI →</a></div><div class="small"><span>© 2026 Antoine Bonhomme</span><span>Mechanical Engineering @ UC Berkeley</span><a href="#top">Back to top ↑</a></div></div></footer>
+<div class="lb" id="lb" hidden><img alt=""><button type="button" aria-label="Close">×</button></div>
+<script>
+(function(){
+  // work filters
+  var fs = document.querySelectorAll('.f[data-f]');
+  fs.forEach(function(b){ b.addEventListener('click', function(){
+    fs.forEach(function(x){ x.classList.toggle('on', x === b); });
+    var k = b.dataset.f, n = 0;
+    document.querySelectorAll('.card[data-cats]').forEach(function(c){
+      var show = k === 'all' || c.dataset.cats.split(' ').indexOf(k) !== -1;
+      c.hidden = !show; if (show) n++;
+    });
+    var cnt = document.getElementById('wcount');
+    if (cnt) cnt.textContent = (n < 10 ? '0' : '') + n + (n === 1 ? ' project' : ' projects');
+  }); });
+  // image lightbox
+  var lb = document.getElementById('lb');
+  if (lb) {
+    var li = lb.querySelector('img');
+    var close = function(){ lb.hidden = true; li.removeAttribute('src'); document.body.style.overflow = ''; };
+    document.querySelectorAll('.imgs img').forEach(function(im){
+      im.addEventListener('click', function(){ li.src = im.currentSrc || im.src; li.alt = im.alt; lb.hidden = false; document.body.style.overflow = 'hidden'; });
+    });
+    lb.addEventListener('click', close);
+    document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape' && !lb.hidden) close(); });
+  }
+  // respect reduced motion for the SVG circuit (SMIL ignores CSS)
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('svg.track').forEach(function(s){ if (s.pauseAnimations) s.pauseAnimations(); });
+  }
+})();
+</script>
 </body>
 </html>
