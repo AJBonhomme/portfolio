@@ -14,7 +14,7 @@ SITE = {
 ABOUT = {
     "photo": ("main", "898d3a193f"),
     "paragraphs": [
-        "Hi! I'm Antoine, a mechanical engineering student at UC Berkeley (B.S. expected 2028, GPA 3.95), currently working on autonomy and powertrain for Berkeley Formula Racing. I have a strong focus on autonomous robotics, hands-on system design, and real-world engineering projects — from retrofitting subsea robots at SeeByte to founding an autonomous racing team.",
+        "Hi! I'm Antoine, a mechanical engineering student at UC Berkeley (B.S. expected 2028, GPA 3.95), currently a chassis engineer for Berkeley Formula Racing. I have a strong focus on vehicle structures, autonomous robotics, hands-on system design, and real-world engineering projects — from retrofitting subsea robots at SeeByte to founding an autonomous racing team.",
         "My work spans the full loop: CAD and FEA in SolidWorks and Fusion 360, PCB design in KiCad, embedded control on ESP32 and Pixhawk, Python sensor APIs and controllers, and shop fabrication with MIG welding, plasma cutting and 3D printing.",
         "In my free time I love to work out (running, hitting the gym), cook, play video games (modded Kerbal Space Program), and hang out with friends.",
     ],
@@ -27,15 +27,12 @@ ABOUT = {
     },
     # each role: org, role, dates, groups = [(label or None, [bullets])], links = [(text, href)]
     "experience": [
-        {"org": "Berkeley Formula Racing", "role": "Autonomous Systems & Powertrain Member", "dates": "Sep 2026 – Present",
-         "groups": [
-             ("Autonomous (Controls)", [
-                 "Developing a Python-based path-following controller for a racecar model, modeling kinematic bicycle dynamics and implementing feedback control with steering and acceleration constraints",
-                 "Developing centerline tracking, heading/lateral-error feedback, and trajectory control for safe, time-efficient lap completion"]),
-             ("Powertrain (Mechanical)", [
-                 "Designed a differential mounting assembly and motor mount for a chain-driven rear drivetrain (EMRAX 228 motor, 3.53:1 reduction, Drexler FSAE diff), including bearings, fasteners, jacking bar, and chain tensioner",
-                 "Ran FEA in SolidWorks to a 1.5 minimum factor of safety under 4G shock loading"])],
-         "links": [("Path-following controller", "/feb-path-following-controller"), ("Differential mount", "/feb-differential-mount"), ("Engine mount", "/bfr-engine-mount")]},
+        {"org": "Berkeley Formula Racing", "role": "Chassis Engineer", "dates": "Sep 2026 – Present",
+         "groups": [(None, [
+             "Member of the chassis subteam for Berkeley Formula Racing's Formula SAE car, powered by a KTM 450 SX-F single-cylinder engine",
+             "Designed a triangulated 4130 steel tube engine mount welded to the main chassis, iterating in SolidWorks FEA from a factor of safety of 1 to 2 and cutting maximum displacement from 3 mm to 0.3 mm",
+             "Specified hardware, costed the design at $177 in material and hardware (~10 lb), and planned the cut, notch and weld manufacturing process"])],
+         "links": [("Engine mount", "/bfr-engine-mount")]},
         {"org": "SeeByte", "role": "Mechanical Engineering Intern", "dates": "May 2026 – Aug 2026",
          "groups": [(None, [
              "Retrofitted two legacy Bluefin Hovering AUVs (HAUVs) — subsea robots built for autonomous dam-inspection missions, holding precise heading, depth, and position in high-current environments",
@@ -78,70 +75,6 @@ ABOUT = {
 # Each project: slug, title, year, cover, intro (list of paragraphs), sections (list of dicts)
 # Section keys: heading (optional), text (list of paragraphs) or bullets (list), images (list of (deck, hash, caption)), layout ("stack" | "pair" | "triple")
 PROJECTS = [
-    {
-        "slug": "feb-differential-mount",
-        "title": "FEB Differential Mount",
-        "year": "2026",
-        "cover": ("feb_powertrain", "6115d4dbdd"),
-        "subtitle": "Formula Electric at Berkeley — Powertrain",
-        "intro": [
-            "Designed a differential mounting assembly for Formula Electric at Berkeley's chain-driven rear drivetrain — an EMRAX 228 motor driving a Drexler FSAE differential through a 3.53:1 reduction. The assembly includes bearings, fasteners, frame tabs, a jacking bar and a chain tensioner, and was verified in SolidWorks FEA to a 1.5 minimum factor of safety under 4G shock loading.",
-        ],
-        "sections": [
-            {"heading": "Requirements & Hand Calculations",
-             "text": ["Started from the FSAE rules and the team's project brief: calculate the maximum load on the differential, mount it securely to the rear chassis with all required hardware, add a rules-compliant jacking bar, and compare chain-tensioning options (turnbuckle, eccentric, idler sprocket). From the motor's peak torque and the gear ratio I found the torque on the Drexler differential, then used the #40 chain and sprocket radius to convert that into an 8.4 kN tangential chain load on the mount."],
-             "images": [("feb_powertrain", "7d09905f41", "FSAE rules envelope for the rear drivetrain"), ("feb_powertrain", "f758354045", "Motor peak torque → gear ratio → differential torque"), ("feb_powertrain", "854119f834", "Chain and sprocket hand calculations")],
-             "layout": "triple"},
-            {"heading": "Preliminary Sketches",
-             "text": ["First sketches to envision the mount system before opening CAD — chain in pink, tabs in red, mount in blue, fasteners in green, bearings in purple. The idea: two mounting brackets cross-supported by a bar, mounted to the chassis via welded tabs, with tie rods used to adjust chain tension. These sketches were what I brought to office hours with senior team members."],
-             "images": [("feb_powertrain", "86053cafaf", "Isometric concept sketch overlaid on the chassis"), ("feb_powertrain", "5d4ca6d56f", "Bracket concept"), ("feb_powertrain", "389f2e71f1", "Mount back view with support bar")],
-             "layout": "triple"},
-            {"heading": "SolidWorks Design",
-             "text": ["Built two mounting brackets with fully defined sketches and repeatable dimensions — identical except for the bearing bore, since one side carries a smaller bearing. A bottom tooth mounts the jacking bar, and material was cut out of the bracket wherever it didn't carry load. The assembly was designed to minimize unique parts: 4× frame tabs, 2× tie rods, 80 mm and 90 mm brackets, a jack bar, and 4× M8 bolts with locknuts. Screwing the tie rods in or out moves the differential ±1 in for chain tension."],
-             "images": [("feb_powertrain", "51cf80c65a", "Bracket drawing"), ("feb_powertrain", "927a67fdfe", "Bracket with bearing bore and jacking-bar tooth"), ("feb_powertrain", "f82ab06b08", "Full assembly on the rear chassis tubes")],
-             "layout": "triple"},
-            {"heading": "Simulation",
-             "text": ["Tie rods were simplified as tabs of equivalent length, the tube chassis was used as the fixture, and all M8 hardware was modeled as bolted connections so hardware stress showed up in the results. Added the differential weight and the 8.4 kN chain force as remote loads, applied the weld tool to every welded item, assigned materials and generated the mesh."],
-             "images": [("feb_powertrain", "71145f6413", "Remote loads applied where the chain acts"), ("feb_powertrain", "407e546e48", "Fixtures, connections and mesh")],
-             "layout": "pair"},
-            {"heading": "Analysis Results",
-             "bullets": ["Applied an 8.4 kN chain load to the differential mount", "Maximum displacement of only about 0.22 mm", "Minimum factor of safety of 1.549 — meets the 1.5 target for this load case"],
-             "images": [("feb_powertrain", "6a28562207", "Von Mises stress"), ("feb_powertrain", "1238a35f7a", "Factor of safety"), ("feb_powertrain", "71ecb63aa3", "Displacement")],
-             "layout": "triple"},
-            {"heading": "Materials, Cost & Manufacturing",
-             "text": ["Chose AISI 4130 steel: strong and stiff enough for the differential and chain loads, easy to weld to the steel chassis and jacking bar, and low cost with room to remove material later. Tabs are laser or water cut and drilled, the jacking bar is chop-sawed, bearing bores and critical holes are CNC machined, and the final assembly is bolted and welded. Next steps: more FEA iterations to cut weight while keeping FOS near 1.5, more realistic contacts and load cases, and easier chain tensioning and differential removal."],
-             "images": [("feb_powertrain", "eb247af870", "Final differential mount assembly")],
-             "layout": "stack"},
-        ],
-    },
-    {
-        "slug": "feb-path-following-controller",
-        "title": "FEB Path-Following Controller",
-        "year": "2026",
-        "cover": ("feb_autonomous", "4bce310200"),
-        "subtitle": "Formula Electric at Berkeley — Autonomous",
-        "intro": [
-            "Developing a Python path-following controller for a simulated race car on a cone-defined track. The controller takes the vehicle state [x, y, heading φ, velocity v, steering angle θ] and outputs acceleration and steering-rate commands [a, θ̇], using a kinematic bicycle model and feedback control with steering and acceleration constraints. Objective: a fast, safe lap with no cones hit.",
-        ],
-        "sections": [
-            {"heading": "Control Theory Learning",
-             "text": ["Reviewed Python and NumPy array operations, learned vehicle state representation, studied the kinematic bicycle model, and worked through open-loop vs. closed-loop feedback and PID control — then applied each concept incrementally in the simulator."],
-             "images": [("feb_autonomous", "99064adc19", "Kinematic bicycle model"), ("feb_autonomous", "45aa3097b6", "The cone-defined track and initial car pose"), ("feb_autonomous", "0a1834d225", "Feedback control notes")],
-             "layout": "triple"},
-            {"heading": "Learning Simulation",
-             "text": ["Built a small timestep simulation to teach myself the fundamentals: start with a known state, apply a control, calculate the state derivatives, advance by dt, repeat. The first controller computed a desired heading toward a target with atan2 and used proportional feedback on the heading error — which worked, but caused the car to loop around the target with no way to correct lateral error."],
-             "images": [("feb_autonomous", "4e1f65de98", "Spiralling into the target"), ("feb_autonomous", "8d5cb40b49", "Unstable gain"), ("feb_autonomous", "c37c0663ad", "Point-toward-target controller")],
-             "layout": "triple"},
-            {"heading": "From Target Tracking to Path Tracking",
-             "text": ["Sampled the track centerline, found the closest centerline point to the car, computed the track direction and a signed lateral error (being 5 m away is not enough — you need to know which side of the track you're on), and combined it with heading error: θ̇ = K_heading · e_heading − K_lateral · e_lateral. Tuning the two gains is what keeps the car off the cones."],
-             "images": [("feb_autonomous", "1be2eb8cdf", "Closest-point and lateral error"), ("feb_autonomous", "359e3ffcaf", "Early path tracking — oscillating around the centerline")],
-             "layout": "pair"},
-            {"heading": "Current P Controller",
-             "text": ["The current controller follows the centerline cleanly around the full track. Next steps: better speed control, measuring lap time, and moving from a P controller to full PID."],
-             "images": [("feb_autonomous", "0e6ad804e2", "Car trajectory vs. centerline"), ("feb_autonomous", "4bce310200", "Tuned heading + lateral controller")],
-             "layout": "pair"},
-        ],
-    },
     {
         "slug": "bfr-engine-mount",
         "title": "BFR Engine Mount",
@@ -422,7 +355,7 @@ HERO = {
     "kicker": "Mechanical Engineering · UC Berkeley '28",
     # trusted, author-written HTML
     "lede_html": "Building autonomous machines — from race cars to subsea robots. "
-                 "Currently on <b>autonomy &amp; powertrain at Berkeley Formula Racing</b>; "
+                 "Currently a <b>chassis engineer at Berkeley Formula Racing</b>; "
                  "previously rebuilt autonomous underwater vehicles at <b>SeeByte</b>.",
 }
 
@@ -444,8 +377,6 @@ FILTERS = [
 
 # slug -> (tags shown on the card and project header, filter groups)
 TAGS = {
-    "feb-differential-mount":        (["Powertrain", "FEA", "SolidWorks"],          ["mech"]),
-    "feb-path-following-controller": (["Controls", "Python", "Vehicle dynamics"],   ["autonomy"]),
     "bfr-engine-mount":              (["Chassis", "FEA", "4130 steel"],             ["mech"]),
     "seebyte-hovering-auv":          (["Autonomy", "Sensor fusion", "Subsea"],      ["autonomy", "elec", "mech"]),
     "mesafsd-autonomous-go-kart":    (["Autonomy", "Leadership", "Embedded"],       ["autonomy", "elec", "fab"]),

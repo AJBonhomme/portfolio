@@ -510,8 +510,8 @@ for i, p in enumerate(PROJECTS, 1):
 oval_gold = 11.43 * 1.05
 promo = ('<div class="promo"><div class="in"><div><div class="kicker">Racetrack Lab · playable</div>'
          '<h2>Can you out-drive<br>my <em>Python</em> controller?</h2>'
-         '<p>Draw any circuit, then race a car driven by the same kinematic bicycle model and path-following '
-         'controller I built for Formula SAE. It runs live in your browser.</p>'
+         '<p>Draw any circuit, then race a car driven by a kinematic bicycle model and a path-following '
+         'controller written in Python. It runs live in your browser.</p>'
          '<a class="b y" href="/racetrack">Race the AI →</a></div>'
          '<div class="tower"><div class="th">Timing · Big Oval</div>'
          '<div class="row ai"><span>P1</span><b>AI · Python</b><i>11.43</i></div>'
@@ -612,7 +612,7 @@ lab = lab.replace("__LAB_SIM__", open(os.path.join(HERE, "lab_sim.py")).read())
 lab = lab.replace("/lab_sim.py", "https://github.com/AJBonhomme/portfolio/blob/main/src/lab_sim.py")
 page("racetrack.html", f"{SITE['name']} — Racetrack Lab",
      "Draw a racetrack with your mouse and watch a car driven by a live Python path-following controller try to lap it.",
-     "racetrack", '<div class="wrap labwrap">' + lab + '</div>', og=cover_thumb(*PROJECTS[1]["cover"]))
+     "racetrack", '<div class="wrap labwrap">' + lab + '</div>', og=cover_thumb(*next(p for p in PROJECTS if p["slug"] == "mesafsd-autonomous-go-kart")["cover"]))
 
 # remove pages from earlier builds that no longer correspond to anything
 expected = {"index.html", "about.html", "contact.html", "racetrack.html"} | {p["slug"] + ".html" for p in PROJECTS}
@@ -631,6 +631,10 @@ with open(os.path.join(OUT, "vercel.json"), "w") as f:
         "redirects": [
             {"source": "/" + old, "destination": "/small-projects", "permanent": True}
             for old in ("obstacle-avoiding-rc-car", "rc-car-iterations", "handheld-distance-finder")
+        ] + [
+            # retired project pages
+            {"source": "/" + old, "destination": "/bfr-engine-mount", "permanent": True}
+            for old in ("feb-differential-mount", "feb-path-following-controller")
         ] + [
             # stable short link that always points at the current résumé file
             {"source": "/resume", "destination": SITE["resume"], "permanent": False},

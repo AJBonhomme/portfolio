@@ -17,6 +17,16 @@
       "permanent": true
     },
     {
+      "source": "/feb-differential-mount",
+      "destination": "/bfr-engine-mount",
+      "permanent": true
+    },
+    {
+      "source": "/feb-path-following-controller",
+      "destination": "/bfr-engine-mount",
+      "permanent": true
+    },
+    {
       "source": "/resume",
       "destination": "/AntoineBonhomme_Resume.pdf",
       "permanent": false
