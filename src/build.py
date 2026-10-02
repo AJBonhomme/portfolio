@@ -126,6 +126,21 @@ img{max-width:100%;display:block;height:auto}
 .exp div{display:grid;grid-template-columns:1fr auto;gap:8px 20px;padding:13px 0;border-bottom:1px solid var(--rule);color:var(--body)}
 .exp b{color:#fff;font-weight:600;display:block;font-family:"Lora",Georgia,serif}
 .exp i{font-style:normal;color:var(--muted);font-size:14px;white-space:nowrap}
+.about .dl{display:inline-block;margin-top:6px;font-family:"Figtree",sans-serif;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#2a2a2a;background:var(--accent);padding:10px 16px}
+.about .dl:hover{background:#ffd166}
+.roles{border-top:1px solid var(--rule)}
+.role{padding:16px 0 18px;border-bottom:1px solid var(--rule)}
+.role .hd{display:flex;justify-content:space-between;align-items:baseline;gap:20px}
+.role .hd b{display:block;color:#fff;font-weight:600;font-family:"Lora",Georgia,serif;font-size:17px}
+.role .rl{display:block;color:var(--body);font-size:14.5px;margin-top:2px}
+.role .hd i{font-style:normal;color:var(--muted);font-size:14px;white-space:nowrap}
+.role h4{margin:12px 0 0;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.role ul{margin:8px 0 0;padding-left:20px;color:var(--body);font-size:14.5px;line-height:1.6}
+.role li{margin:4px 0}
+.role .edd{margin:6px 0 0;font-size:14.5px}
+.rlinks{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px}
+.rlinks a{font-size:12.5px;font-weight:600;color:var(--accent)}
+.rlinks a:hover{color:#fff}
 .skills div{padding:10px 0;border-bottom:1px solid var(--rule);color:var(--body)}
 .skills b{color:#fff;font-weight:600;display:inline-block;min-width:190px}
 .gal{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}
@@ -163,6 +178,8 @@ img{max-width:100%;display:block;height:auto}
  .gal{grid-template-columns:repeat(2,1fr)}
  .exp div{grid-template-columns:1fr}
  .exp i{white-space:normal}
+ .role .hd{flex-direction:column;gap:4px}
+ .role .hd i{white-space:normal}
 }
 /* ---------- racetrack lab ---------- */
 .lab{max-width:1120px}
@@ -328,10 +345,30 @@ for i, p in enumerate(PROJECTS):
 # ---- About
 a = [f'<article class="about"><h1>About Me</h1><div class="hero"><img src="{img(*ABOUT["photo"], max_w=900)}" alt="{e(SITE["name"])}"><div>']
 a += [f"<p>{e(t)}</p>" for t in ABOUT["paragraphs"]]
+a.append(f'<a class="dl" href="{e(SITE["resume"])}" target="_blank" rel="noopener">Download résumé (PDF) ↓</a>')
 a.append("</div></div>")
-a.append("<h2>Experience</h2><div class=\"exp\">" + "".join(f"<div><div><b>{e(o)}</b>{e(r)}</div><i>{e(d)}</i></div>" for o, r, d in ABOUT["experience"]) + "</div>")
+
+def roles_html(roles):
+    out = ['<div class="roles">']
+    for r in roles:
+        out.append('<div class="role"><div class="hd"><div>'
+                   f'<b>{e(r["org"])}</b><span class="rl">{e(r["role"])}</span></div><i>{e(r["dates"])}</i></div>')
+        for label, bullets in r["groups"]:
+            if label: out.append(f'<h4>{e(label)}</h4>')
+            out.append("<ul>" + "".join(f"<li>{e(b)}</li>" for b in bullets) + "</ul>")
+        if r.get("links"):
+            out.append('<div class="rlinks">' + "".join(f'<a href="{e(h)}">{e(t)} →</a>' for t, h in r["links"]) + "</div>")
+        out.append("</div>")
+    out.append("</div>")
+    return "".join(out)
+
+ed = ABOUT["education"]
+a.append('<h2>Education</h2><div class="roles"><div class="role"><div class="hd"><div>'
+         f'<b>{e(ed["school"])}</b><span class="rl">{e(ed["degree"])}</span></div><i>{e(ed["dates"])}</i></div>'
+         f'<p class="edd">{e(ed["detail"])}</p></div></div>')
+a.append("<h2>Experience</h2>" + roles_html(ABOUT["experience"]))
+a.append("<h2>Research</h2>" + roles_html(ABOUT["research"]))
 a.append("<h2>Technical Skills</h2><div class=\"skills\">" + "".join(f"<div><b>{e(k)}</b> {e(v)}</div>" for k, v in ABOUT["skills"].items()) + "</div>")
-a.append("<h2>Education</h2><div class=\"exp\"><div><div><b>University of California, Berkeley</b>B.S. Mechanical Engineering · GPA 3.95 · Coursework: Thermodynamics, Engineering Stats &amp; Data Science, Internet-of-Things</div><i>Expected 2028</i></div></div>")
 a.append('<div class="gal">' + "".join(f'<img src="{img(d,h,max_w=700)}" alt="" loading="lazy">' for d, h in ABOUT["gallery"]) + "</div></article>\n")
 page("about.html", f"{SITE['name']} — About Me", ABOUT["paragraphs"][0], "about", "".join(a), og=img(*ABOUT["photo"], max_w=900))
 
@@ -373,6 +410,14 @@ with open(os.path.join(OUT, "vercel.json"), "w") as f:
         "redirects": [
             {"source": "/" + old, "destination": "/small-projects", "permanent": True}
             for old in ("obstacle-avoiding-rc-car", "rc-car-iterations", "handheld-distance-finder")
+        ] + [
+            # stable short link that always points at the current résumé file
+            {"source": "/resume", "destination": SITE["resume"], "permanent": False},
         ],
     }, indent=2) + "\n")
+
+# static assets (the résumé PDF) are copied verbatim to the site root
+for asset in glob.glob(os.path.join(HERE, "assets", "*")):
+    shutil.copy2(asset, os.path.join(OUT, os.path.basename(asset)))
+    print("asset:", os.path.basename(asset))
 print("built", OUT, "images:", len(os.listdir(IMG)))

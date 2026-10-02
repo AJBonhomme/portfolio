@@ -15,6 +15,11 @@
       "source": "/handheld-distance-finder",
       "destination": "/small-projects",
       "permanent": true
+    },
+    {
+      "source": "/resume",
+      "destination": "/AntoineBonhomme_Resume.pdf",
+      "permanent": false
     }
   ]
 }

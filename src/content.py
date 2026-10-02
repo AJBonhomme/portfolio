@@ -7,29 +7,69 @@ SITE = {
     "email": "antoine.bonh@gmail.com",
     "phone": "858 280 1736",
     "linkedin": "https://www.linkedin.com/in/antoine-bonhomme-5b210a320/",
-    "resume": "https://docs.google.com/document/d/1bYhJqDFZi9Dlk61fPpLYqg_OwdbEA28v_bysWaAPR18/edit?usp=sharing",
+    "resume": "/AntoineBonhomme_Resume.pdf",   # hosted on the site; /resume redirects here
     "github": "https://github.com/AJBonhomme",
 }
 
 ABOUT = {
     "photo": ("main", "898d3a193f"),
     "paragraphs": [
-        "Hi! I'm Antoine, a mechanical engineering student at UC Berkeley (B.S. expected 2028, GPA 3.95). I have a strong focus on autonomous robotics, hands-on system design, and real-world engineering projects — from retrofitting subsea robots to founding an autonomous racing team.",
+        "Hi! I'm Antoine, a mechanical engineering student at UC Berkeley (B.S. expected 2028, GPA 3.95), currently working on autonomy and powertrain for Berkeley Formula Racing. I have a strong focus on autonomous robotics, hands-on system design, and real-world engineering projects — from retrofitting subsea robots at SeeByte to founding an autonomous racing team.",
         "My work spans the full loop: CAD and FEA in SolidWorks and Fusion 360, PCB design in KiCad, embedded control on ESP32 and Pixhawk, Python sensor APIs and controllers, and shop fabrication with MIG welding, plasma cutting and 3D printing.",
         "In my free time I love to work out (running, hitting the gym), cook, play video games (modded Kerbal Space Program), and hang out with friends.",
     ],
+    # Everything below mirrors the résumé PDF (assets/AntoineBonhomme_Resume.pdf).
+    "education": {
+        "school": "University of California, Berkeley",
+        "degree": "B.S. Mechanical Engineering",
+        "dates": "Expected 2028",
+        "detail": "GPA 3.95 · Relevant coursework: Thermodynamics, Engineering Stats & Data Science, Internet-of-Things",
+    },
+    # each role: org, role, dates, groups = [(label or None, [bullets])], links = [(text, href)]
+    "experience": [
+        {"org": "Berkeley Formula Racing", "role": "Autonomous Systems & Powertrain Member", "dates": "Sep 2026 – Present",
+         "groups": [
+             ("Autonomous (Controls)", [
+                 "Developing a Python-based path-following controller for a racecar model, modeling kinematic bicycle dynamics and implementing feedback control with steering and acceleration constraints",
+                 "Developing centerline tracking, heading/lateral-error feedback, and trajectory control for safe, time-efficient lap completion"]),
+             ("Powertrain (Mechanical)", [
+                 "Designed a differential mounting assembly and motor mount for a chain-driven rear drivetrain (EMRAX 228 motor, 3.53:1 reduction, Drexler FSAE diff), including bearings, fasteners, jacking bar, and chain tensioner",
+                 "Ran FEA in SolidWorks to a 1.5 minimum factor of safety under 4G shock loading"])],
+         "links": [("Path-following controller", "/feb-path-following-controller"), ("Differential mount", "/feb-differential-mount"), ("Engine mount", "/bfr-engine-mount")]},
+        {"org": "SeeByte", "role": "Mechanical Engineering Intern", "dates": "May 2026 – Aug 2026",
+         "groups": [(None, [
+             "Retrofitted two legacy Bluefin Hovering AUVs (HAUVs) — subsea robots built for autonomous dam-inspection missions, holding precise heading, depth, and position in high-current environments",
+             "Developed a modernized control stack, integrating thrusters, a power distribution board, and a tethered Ethernet comms link",
+             "Authored Python APIs to parse and fuse IMU, Doppler Velocity Log (DVL), and depth-sensor data into the vehicle's MAVLink-based flight controller, enabling closed-loop autonomous dynamic positioning",
+             "Integrated a stereo camera and 3D sonar payload for autonomous underwater perception, and tuned PID controllers to achieve stable station-keeping, validated through pool testing",
+             "Authored supporting hardware, software, and deployment documentation"])],
+         "links": [("HAUV retrofit", "/seebyte-hovering-auv")]},
+        {"org": "MesaFSD (Full Self-Driving) Club", "role": "President & Founder", "dates": "May 2025 – May 2026",
+         "groups": [(None, [
+             "Founded and led a 20-engineer multidisciplinary team to design and build an autonomous racing go-kart end-to-end, placing 5th nationally in the Autonomous Karting Series",
+             "Designed embedded control systems for autonomous actuation on high-level and low-level computers, integrating signal level-shifting and 5V logic relays to actuate 48V solenoids and brake master cylinder pumps",
+             "Achieved an IP65 ingress-protection rating on a salvaged competition chassis by directing MIG-welding repairs and fabricating custom-sealed enclosures (TPU 95A gaskets, PETG/ABS housings) to protect embedded compute hardware",
+             "Secured $8,500 in funding for sensor and mechanical hardware through grant applications and corporate sponsor pitches"])],
+         "links": [("Autonomous go-kart", "/mesafsd-autonomous-go-kart")]},
+    ],
+    "research": [
+        {"org": "DERConnect | UC San Diego", "role": "Research Assistant", "dates": "Mar 2025 – Jun 2025",
+         "groups": [(None, [
+             "Developed a real-time hardware-in-the-loop (HIL) simulation of a microgrid, integrating physical hardware with simulated systems to test autonomous control strategies for preventing feeder overloads",
+             "Implemented and validated real-time control and system-response logic, contributing to a research paper published with Clean Coalition",
+             "Built out the DERConnect compute infrastructure by installing 30+ compute nodes and designing/fabricating custom mechanical mounts and server racks using CNC machining and shop tools"])],
+         "links": [("Microgrid research", "/derconnect-microgrid-research")]},
+        # Not on the one-page résumé (space), kept here because the Microgrid PCB project page is this role.
+        {"org": "DERConnect | UC San Diego", "role": "Outreach Intern", "dates": "Nov 2024 – May 2025",
+         "groups": [(None, [
+             "Designed a decentralized microgrid PCB with real-time power switching, load prioritization and battery integration, and built Arduino renewable-energy demos for technical workshops"])],
+         "links": [("Microgrid PCB", "/derconnect-microgrid-pcb")]},
+    ],
     "skills": {
         "Software & Design": "Python, Fusion 360, SolidWorks, Git, OpenCV, KiCad, FEA, PID Tuning",
-        "Embedded & Sensors": "Raspberry Pi, ESP32, Pixhawk / ArduPilot, Doppler Velocity Log (DVL), Sonar, GPS, Computer Vision, Encoders",
-        "Fabrication": "MIG Welding, Plasma Cutting, 3D Printing (PETG / ABS / TPU 95A), Laser Cutting, Soldering",
+        "Embedded & Sensors": "Raspberry Pi, ESP32, Doppler Velocity Log (DVL), Sonar, GPS, Computer Vision, Encoders",
+        "Fabrication": "MIG Welding, Plasma Cutting, 3D Printing (PETG/ABS/TPU 95A), Soldering",
     },
-    "experience": [
-        ("Formula Electric at Berkeley", "Autonomous Systems & Powertrain Member", "Sep 2026 – Present"),
-        ("SeeByte", "Mechanical Engineering Intern", "May 2026 – Aug 2026"),
-        ("MesaFSD (Full Self-Driving) Club", "President & Founder", "May 2025 – May 2026"),
-        ("UCSD DERConnect", "Research Assistant", "Jun 2025 – Aug 2025"),
-        ("UCSD DERConnect", "Outreach Intern", "Nov 2024 – May 2025"),
-    ],
     "gallery": [
         ("main", "cf83f7f4e1"), ("main", "4937468430"), ("main", "998c0b58dc"), ("main", "cb34d87fe1"),
     ],
@@ -252,7 +292,7 @@ PROJECTS = [
         "title": "DERConnect Microgrid Research",
         "year": "2025",
         "cover": ("derconnect", "ad9945dda4"),
-        "subtitle": "UCSD DERConnect Research Assistant · Jun – Aug 2025",
+        "subtitle": "UCSD DERConnect Research Assistant · Mar – Jun 2025",
         "intro": [
             "Authored a microgrid-modeling paper — Preventative Feeder Overloading During DER System Failures in Residential Community Microgrids — using real-time hardware-in-the-loop simulation to keep neighborhood power grids from overloading when their solar and battery equipment suddenly fails. Published with Clean Coalition, a nonprofit energy organization.",
             "Also built out the DERConnect server room from scratch: 30+ compute nodes installed and configured, with custom laser-cut mounts and rack components for non-standard equipment.",
