@@ -1,4 +1,4 @@
-# Racetrack Lab simulator — runs in the browser via Pyodide.
+# Racetrack Lab simulator: runs in the browser via Pyodide.
 # Vehicle: kinematic bicycle model. State = [x, y, phi (heading), v, theta (steer angle)].
 # The SAME model drives the autonomous car and the human-driven car, so the race is fair.
 # Units: pixels, seconds, radians.

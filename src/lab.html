@@ -1,7 +1,7 @@
 <article class="lab">
 <h1>Racetrack Lab</h1>
-<p class="sub">Draw a track. Race the autonomous car. · Experimental</p>
-<div class="intro"><p>Pick a circuit or draw your own with the mouse, then race the yellow car around it. It's driven by a <em>real Python</em> controller running in your browser — a kinematic bicycle model with heading and lateral-error feedback, the same approach used for autonomous race cars. <b>Arrow keys</b> or <b>WASD</b> to drive. Beat it if you can.</p></div>
+<p class="sub">Draw a track and race a car driven by a Python controller.</p>
+<div class="intro"><p>Pick a circuit or draw your own with the mouse, then race the yellow car around it. It's driven by a <em>real Python</em> controller running in your browser. It uses a kinematic bicycle model with heading and lateral-error feedback. <b>Arrow keys</b> or <b>WASD</b> to drive. Beat it if you can.</p></div>
 
 <div class="tracks" id="tracks"></div>
 
@@ -35,7 +35,7 @@
 </div>
 
 <details class="panel" id="tunePanel">
-  <summary>Tuning — the AI's gains, live</summary>
+  <summary>Tuning: the AI's gains</summary>
   <div class="tuning">
     <div class="tune"><label><span class="n">K<sub>heading</sub></span> <span id="K_hv">2.5</span></label><input data-p="K_h" type="range" min="0" max="6" step="0.1" value="2.5"></div>
     <div class="tune"><label><span class="n">K<sub>lateral</sub></span> <span id="K_lv">0.03</span></label><input data-p="K_l" type="range" min="0" max="0.12" step="0.005" value="0.03"></div>
@@ -50,14 +50,14 @@
 </details>
 
 <details class="panel">
-  <summary>controller.py — edit the Python that drives the AI</summary>
+  <summary>controller.py: edit the Python that drives the AI</summary>
   <textarea id="pycode" spellcheck="false"></textarea>
   <div class="codebar">
     <button id="btnApply" class="btn primary">Apply code</button>
     <button id="btnRevert" class="btn">Revert to default</button>
     <span id="pyerr" class="pyerr"></span>
   </div>
-  <p class="note">The full simulator — vehicle model, error computation, lap logic — is in <a href="/lab_sim.py" target="_blank">lab_sim.py</a>. Only <code>controller()</code> is swapped in when you apply.</p>
+  <p class="note">The full simulator (vehicle model, error computation, lap logic) is in <a href="/lab_sim.py" target="_blank">lab_sim.py</a>. Only <code>controller()</code> is swapped in when you apply.</p>
 </details>
 </article>
 
@@ -259,7 +259,7 @@ cv.addEventListener('mousedown',down); cv.addEventListener('mousemove',move); wi
 cv.addEventListener('touchstart',down,{passive:false}); cv.addEventListener('touchmove',move,{passive:false}); cv.addEventListener('touchend',up);
 
 function finishTrack(){
-  if(raw.length<20){ raw=[]; hint.style.display=''; hint.textContent='Too short — draw a bigger loop'; render(); return; }
+  if(raw.length<20){ raw=[]; hint.style.display=''; hint.textContent='Too short, draw a bigger loop'; render(); return; }
   const spacing=6, closed=raw.concat([raw[0]]);
   let res=[closed[0]], acc=0;
   for(let i=1;i<closed.length;i++){
@@ -277,7 +277,7 @@ function finishTrack(){
     for(let i=0;i<n;i++){ let sx=0,sy=0; for(let k=-3;k<=3;k++){const p=res[(i+k+n)%n]; sx+=p[0]; sy+=p[1];} out.push([sx/7,sy/7]); }
     res=out;
   }
-  if(res.length<40){ raw=[]; hint.style.display=''; hint.textContent='Too short — draw a bigger loop'; render(); return; }
+  if(res.length<40){ raw=[]; hint.style.display=''; hint.textContent='Too short, draw a bigger loop'; render(); return; }
   track=res; buildCones(); loadRec(); bestAi=null;
   if(ready) pushTrack();
   mode='idle'; syncButtons(); updateScore(); render();
@@ -447,7 +447,7 @@ function frame(now){
       mode='idle'; $('dpad').classList.remove('show');
       setStatus('Controller error','rolled back');
       try{ py.runPython(goodSrc); }catch(e){}
-      pendingSrc=null; showErr(lastLine(err.message||err)+' — rolled back to last working controller', false);
+      pendingSrc=null; showErr(lastLine(err.message||err)+' (rolled back to the last working controller)', false);
       render(); requestAnimationFrame(frame); return;
     }
     if(pendingSrc){ goodSrc=pendingSrc; pendingSrc=null; }
@@ -568,12 +568,12 @@ function render(){
       ctx.beginPath(); ctx.arc(W/2-70+i*70, H/2-70, 24, 0, 7);
       ctx.fillStyle = (3-i) >= n ? '#ef4444' : '#3f3f3f'; ctx.fill();
     }
-    ctx.fillStyle='#fff'; ctx.font='700 64px Figtree, sans-serif'; ctx.textAlign='center';
+    ctx.fillStyle='#fff'; ctx.font='700 64px -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif'; ctx.textAlign='center';
     ctx.fillText(n>0?String(n):'GO!', W/2, H/2+40); ctx.textAlign='left';
   }
   if(flash){
     ctx.globalAlpha=Math.min(1,flash.t);
-    ctx.fillStyle='#f2c14e'; ctx.font='700 40px Figtree, sans-serif'; ctx.textAlign='center';
+    ctx.fillStyle='#f2c14e'; ctx.font='700 40px -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif'; ctx.textAlign='center';
     ctx.fillText(flash.text, W/2, 90); ctx.textAlign='left'; ctx.globalAlpha=1;
   }
   for(const c of confetti){ ctx.globalAlpha=Math.max(0,Math.min(1,c.life)); ctx.fillStyle=c.c; ctx.fillRect(c.x,c.y,c.r,c.r); }

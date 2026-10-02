@@ -3,25 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Antoine Bonhomme — Racetrack Lab</title>
+<title>Racetrack Lab · Antoine Bonhomme</title>
 <meta name="description" content="Draw a racetrack with your mouse and watch a car driven by a live Python path-following controller try to lap it.">
-<meta name="theme-color" content="#0b0c0e">
-<meta property="og:title" content="Antoine Bonhomme — Racetrack Lab">
+<meta name="theme-color" content="#111113">
+<meta property="og:title" content="Racetrack Lab · Antoine Bonhomme">
 <meta property="og:description" content="Draw a racetrack with your mouse and watch a car driven by a live Python path-following controller try to lap it.">
 <meta property="og:image" content="/img/mesafsd-7fb05a70fb-cover.jpg">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<header class="hdr" id="top"><div class="wrap"><a class="brand" href="/"><span class="plate">AB</span><span>Antoine Bonhomme</span></a><button class="menu" type="button" aria-expanded="false" onclick="var h=this.closest('.hdr');h.classList.toggle('open');this.setAttribute('aria-expanded',h.classList.contains('open'))">Menu</button><nav class="nav"><a href="/">Work</a><a href="/racetrack" class="on"><i class="live"></i>Racetrack Lab</a><a href="/about">About</a><a href="/contact">Contact</a><a class="cv" href="/AntoineBonhomme_Resume.pdf" target="_blank" rel="noopener">Résumé ↗</a></nav></div></header>
+<header class="hdr"><div class="wrap"><a class="brand" href="/">Antoine Bonhomme</a><button class="menu" type="button" aria-expanded="false" onclick="var h=this.closest('.hdr');h.classList.toggle('open');this.setAttribute('aria-expanded',h.classList.contains('open'))">Menu</button><nav class="nav"><a href="/">Work</a><a href="/racetrack" class="on">Racetrack Lab</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/AntoineBonhomme_Resume.pdf" target="_blank" rel="noopener">Résumé</a></nav></div></header>
 <main>
 <div class="wrap labwrap"><article class="lab">
 <h1>Racetrack Lab</h1>
-<p class="sub">Draw a track. Race the autonomous car. · Experimental</p>
-<div class="intro"><p>Pick a circuit or draw your own with the mouse, then race the yellow car around it. It's driven by a <em>real Python</em> controller running in your browser — a kinematic bicycle model with heading and lateral-error feedback, the same approach used for autonomous race cars. <b>Arrow keys</b> or <b>WASD</b> to drive. Beat it if you can.</p></div>
+<p class="sub">Draw a track and race a car driven by a Python controller.</p>
+<div class="intro"><p>Pick a circuit or draw your own with the mouse, then race the yellow car around it. It's driven by a <em>real Python</em> controller running in your browser. It uses a kinematic bicycle model with heading and lateral-error feedback. <b>Arrow keys</b> or <b>WASD</b> to drive. Beat it if you can.</p></div>
 
 <div class="tracks" id="tracks"></div>
 
@@ -55,7 +52,7 @@
 </div>
 
 <details class="panel" id="tunePanel">
-  <summary>Tuning — the AI's gains, live</summary>
+  <summary>Tuning: the AI's gains</summary>
   <div class="tuning">
     <div class="tune"><label><span class="n">K<sub>heading</sub></span> <span id="K_hv">2.5</span></label><input data-p="K_h" type="range" min="0" max="6" step="0.1" value="2.5"></div>
     <div class="tune"><label><span class="n">K<sub>lateral</sub></span> <span id="K_lv">0.03</span></label><input data-p="K_l" type="range" min="0" max="0.12" step="0.005" value="0.03"></div>
@@ -70,18 +67,18 @@
 </details>
 
 <details class="panel">
-  <summary>controller.py — edit the Python that drives the AI</summary>
+  <summary>controller.py: edit the Python that drives the AI</summary>
   <textarea id="pycode" spellcheck="false"></textarea>
   <div class="codebar">
     <button id="btnApply" class="btn primary">Apply code</button>
     <button id="btnRevert" class="btn">Revert to default</button>
     <span id="pyerr" class="pyerr"></span>
   </div>
-  <p class="note">The full simulator — vehicle model, error computation, lap logic — is in <a href="https://github.com/AJBonhomme/portfolio/blob/main/src/lab_sim.py" target="_blank">lab_sim.py</a>. Only <code>controller()</code> is swapped in when you apply.</p>
+  <p class="note">The full simulator (vehicle model, error computation, lap logic) is in <a href="https://github.com/AJBonhomme/portfolio/blob/main/src/lab_sim.py" target="_blank">lab_sim.py</a>. Only <code>controller()</code> is swapped in when you apply.</p>
 </details>
 </article>
 
-<script id="labsim" type="text/x-python"># Racetrack Lab simulator — runs in the browser via Pyodide.
+<script id="labsim" type="text/x-python"># Racetrack Lab simulator: runs in the browser via Pyodide.
 # Vehicle: kinematic bicycle model. State = [x, y, phi (heading), v, theta (steer angle)].
 # The SAME model drives the autonomous car and the human-driven car, so the race is fair.
 # Units: pixels, seconds, radians.
@@ -528,7 +525,7 @@ cv.addEventListener('mousedown',down); cv.addEventListener('mousemove',move); wi
 cv.addEventListener('touchstart',down,{passive:false}); cv.addEventListener('touchmove',move,{passive:false}); cv.addEventListener('touchend',up);
 
 function finishTrack(){
-  if(raw.length<20){ raw=[]; hint.style.display=''; hint.textContent='Too short — draw a bigger loop'; render(); return; }
+  if(raw.length<20){ raw=[]; hint.style.display=''; hint.textContent='Too short, draw a bigger loop'; render(); return; }
   const spacing=6, closed=raw.concat([raw[0]]);
   let res=[closed[0]], acc=0;
   for(let i=1;i<closed.length;i++){
@@ -546,7 +543,7 @@ function finishTrack(){
     for(let i=0;i<n;i++){ let sx=0,sy=0; for(let k=-3;k<=3;k++){const p=res[(i+k+n)%n]; sx+=p[0]; sy+=p[1];} out.push([sx/7,sy/7]); }
     res=out;
   }
-  if(res.length<40){ raw=[]; hint.style.display=''; hint.textContent='Too short — draw a bigger loop'; render(); return; }
+  if(res.length<40){ raw=[]; hint.style.display=''; hint.textContent='Too short, draw a bigger loop'; render(); return; }
   track=res; buildCones(); loadRec(); bestAi=null;
   if(ready) pushTrack();
   mode='idle'; syncButtons(); updateScore(); render();
@@ -716,7 +713,7 @@ function frame(now){
       mode='idle'; $('dpad').classList.remove('show');
       setStatus('Controller error','rolled back');
       try{ py.runPython(goodSrc); }catch(e){}
-      pendingSrc=null; showErr(lastLine(err.message||err)+' — rolled back to last working controller', false);
+      pendingSrc=null; showErr(lastLine(err.message||err)+' (rolled back to the last working controller)', false);
       render(); requestAnimationFrame(frame); return;
     }
     if(pendingSrc){ goodSrc=pendingSrc; pendingSrc=null; }
@@ -837,12 +834,12 @@ function render(){
       ctx.beginPath(); ctx.arc(W/2-70+i*70, H/2-70, 24, 0, 7);
       ctx.fillStyle = (3-i) >= n ? '#ef4444' : '#3f3f3f'; ctx.fill();
     }
-    ctx.fillStyle='#fff'; ctx.font='700 64px Figtree, sans-serif'; ctx.textAlign='center';
+    ctx.fillStyle='#fff'; ctx.font='700 64px -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif'; ctx.textAlign='center';
     ctx.fillText(n>0?String(n):'GO!', W/2, H/2+40); ctx.textAlign='left';
   }
   if(flash){
     ctx.globalAlpha=Math.min(1,flash.t);
-    ctx.fillStyle='#f2c14e'; ctx.font='700 40px Figtree, sans-serif'; ctx.textAlign='center';
+    ctx.fillStyle='#f2c14e'; ctx.font='700 40px -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif'; ctx.textAlign='center';
     ctx.fillText(flash.text, W/2, 90); ctx.textAlign='left'; ctx.globalAlpha=1;
   }
   for(const c of confetti){ ctx.globalAlpha=Math.max(0,Math.min(1,c.life)); ctx.fillStyle=c.c; ctx.fillRect(c.x,c.y,c.r,c.r); }
@@ -854,37 +851,19 @@ updateScore();
 </script>
 </div>
 </main>
-<footer class="foot"><div class="wrap"><div class="kicker">Get in touch</div><h2><a href="mailto:antoine.bonh@gmail.com">Let’s build<br>something.</a></h2><div class="links"><a href="mailto:antoine.bonh@gmail.com">Email</a><a href="https://www.linkedin.com/in/antoine-bonhomme-5b210a320/" target="_blank" rel="noopener">LinkedIn ↗</a><a href="https://github.com/AJBonhomme" target="_blank" rel="noopener">GitHub ↗</a><a href="/AntoineBonhomme_Resume.pdf" target="_blank" rel="noopener">Résumé ↗</a><a href="/racetrack">Race the AI →</a></div><div class="small"><span>© 2026 Antoine Bonhomme</span><span>Mechanical Engineering @ UC Berkeley</span><a href="#top">Back to top ↑</a></div></div></footer>
+<footer class="foot"><div class="wrap"><span>© 2026 Antoine Bonhomme</span><div class="links"><a href="mailto:antoine.bonh@gmail.com">Email</a><a href="https://www.linkedin.com/in/antoine-bonhomme-5b210a320/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/AJBonhomme" target="_blank" rel="noopener">GitHub</a><a href="/AntoineBonhomme_Resume.pdf" target="_blank" rel="noopener">Résumé</a></div></div></footer>
 <div class="lb" id="lb" hidden><img alt=""><button type="button" aria-label="Close">×</button></div>
 <script>
 (function(){
-  // work filters
-  var fs = document.querySelectorAll('.f[data-f]');
-  fs.forEach(function(b){ b.addEventListener('click', function(){
-    fs.forEach(function(x){ x.classList.toggle('on', x === b); });
-    var k = b.dataset.f, n = 0;
-    document.querySelectorAll('.card[data-cats]').forEach(function(c){
-      var show = k === 'all' || c.dataset.cats.split(' ').indexOf(k) !== -1;
-      c.hidden = !show; if (show) n++;
-    });
-    var cnt = document.getElementById('wcount');
-    if (cnt) cnt.textContent = (n < 10 ? '0' : '') + n + (n === 1 ? ' project' : ' projects');
-  }); });
-  // image lightbox
   var lb = document.getElementById('lb');
-  if (lb) {
-    var li = lb.querySelector('img');
-    var close = function(){ lb.hidden = true; li.removeAttribute('src'); document.body.style.overflow = ''; };
-    document.querySelectorAll('.imgs img').forEach(function(im){
-      im.addEventListener('click', function(){ li.src = im.currentSrc || im.src; li.alt = im.alt; lb.hidden = false; document.body.style.overflow = 'hidden'; });
-    });
-    lb.addEventListener('click', close);
-    document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape' && !lb.hidden) close(); });
-  }
-  // respect reduced motion for the SVG circuit (SMIL ignores CSS)
-  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    document.querySelectorAll('svg.track').forEach(function(s){ if (s.pauseAnimations) s.pauseAnimations(); });
-  }
+  if (!lb) return;
+  var li = lb.querySelector('img');
+  var close = function(){ lb.hidden = true; li.removeAttribute('src'); document.body.style.overflow = ''; };
+  document.querySelectorAll('.imgs img').forEach(function(im){
+    im.addEventListener('click', function(){ li.src = im.currentSrc || im.src; li.alt = im.alt; lb.hidden = false; document.body.style.overflow = 'hidden'; });
+  });
+  lb.addEventListener('click', close);
+  document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape' && !lb.hidden) close(); });
 })();
 </script>
 </body>

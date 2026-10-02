@@ -3,54 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Antoine Bonhomme — Contact</title>
+<title>Contact · Antoine Bonhomme</title>
 <meta name="description" content="Get in touch with Antoine Bonhomme.">
-<meta name="theme-color" content="#0b0c0e">
-<meta property="og:title" content="Antoine Bonhomme — Contact">
+<meta name="theme-color" content="#111113">
+<meta property="og:title" content="Contact · Antoine Bonhomme">
 <meta property="og:description" content="Get in touch with Antoine Bonhomme.">
 <meta property="og:image" content="">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<header class="hdr" id="top"><div class="wrap"><a class="brand" href="/"><span class="plate">AB</span><span>Antoine Bonhomme</span></a><button class="menu" type="button" aria-expanded="false" onclick="var h=this.closest('.hdr');h.classList.toggle('open');this.setAttribute('aria-expanded',h.classList.contains('open'))">Menu</button><nav class="nav"><a href="/">Work</a><a href="/racetrack"><i class="live"></i>Racetrack Lab</a><a href="/about">About</a><a href="/contact" class="on">Contact</a><a class="cv" href="/AntoineBonhomme_Resume.pdf" target="_blank" rel="noopener">Résumé ↗</a></nav></div></header>
+<header class="hdr"><div class="wrap"><a class="brand" href="/">Antoine Bonhomme</a><button class="menu" type="button" aria-expanded="false" onclick="var h=this.closest('.hdr');h.classList.toggle('open');this.setAttribute('aria-expanded',h.classList.contains('open'))">Menu</button><nav class="nav"><a href="/">Work</a><a href="/racetrack">Racetrack Lab</a><a href="/about">About</a><a href="/contact" class="on">Contact</a><a href="/AntoineBonhomme_Resume.pdf" target="_blank" rel="noopener">Résumé</a></nav></div></header>
 <main>
-<section class="wrap phead"><div class="kicker">Contact</div><h1>Let’s talk.</h1><p class="sub2">I’m always happy to hear from people — whether it’s about a project, an internship, or robots in general.</p></section><section class="wrap contact"><div class="rows"><a href="mailto:antoine.bonh@gmail.com"><span>Email</span><b>antoine.bonh@gmail.com</b></a><a href="tel:+18582801736"><span>Phone</span><b>858 280 1736</b></a><a href="https://www.linkedin.com/in/antoine-bonhomme-5b210a320/" target=_blank rel=noopener><span>LinkedIn</span><b>linkedin.com/in/antoine-bonhomme</b></a><a href="https://github.com/AJBonhomme" target=_blank rel=noopener><span>GitHub</span><b>github.com/AJBonhomme</b></a><a href="/AntoineBonhomme_Resume.pdf" target=_blank rel=noopener><span>Résumé</span><b>Download PDF</b></a></div></section>
+<section class="wrap phead"><h1>Contact</h1><p class="sub2">Email is the best way to reach me.</p></section><section class="wrap contact"><div class="rows"><a href="mailto:antoine.bonh@gmail.com"><span>Email</span><b>antoine.bonh@gmail.com</b></a><a href="tel:+18582801736"><span>Phone</span><b>858 280 1736</b></a><a href="https://www.linkedin.com/in/antoine-bonhomme-5b210a320/" target=_blank rel=noopener><span>LinkedIn</span><b>linkedin.com/in/antoine-bonhomme</b></a><a href="https://github.com/AJBonhomme" target=_blank rel=noopener><span>GitHub</span><b>github.com/AJBonhomme</b></a><a href="/AntoineBonhomme_Resume.pdf" target=_blank rel=noopener><span>Résumé</span><b>PDF</b></a></div></section>
 </main>
-<footer class="foot"><div class="wrap"><div class="links"><a href="mailto:antoine.bonh@gmail.com">Email</a><a href="https://www.linkedin.com/in/antoine-bonhomme-5b210a320/" target="_blank" rel="noopener">LinkedIn ↗</a><a href="https://github.com/AJBonhomme" target="_blank" rel="noopener">GitHub ↗</a><a href="/AntoineBonhomme_Resume.pdf" target="_blank" rel="noopener">Résumé ↗</a><a href="/racetrack">Race the AI →</a></div><div class="small"><span>© 2026 Antoine Bonhomme</span><span>Mechanical Engineering @ UC Berkeley</span><a href="#top">Back to top ↑</a></div></div></footer>
+<footer class="foot"><div class="wrap"><span>© 2026 Antoine Bonhomme</span><div class="links"><a href="mailto:antoine.bonh@gmail.com">Email</a><a href="https://www.linkedin.com/in/antoine-bonhomme-5b210a320/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/AJBonhomme" target="_blank" rel="noopener">GitHub</a><a href="/AntoineBonhomme_Resume.pdf" target="_blank" rel="noopener">Résumé</a></div></div></footer>
 <div class="lb" id="lb" hidden><img alt=""><button type="button" aria-label="Close">×</button></div>
 <script>
 (function(){
-  // work filters
-  var fs = document.querySelectorAll('.f[data-f]');
-  fs.forEach(function(b){ b.addEventListener('click', function(){
-    fs.forEach(function(x){ x.classList.toggle('on', x === b); });
-    var k = b.dataset.f, n = 0;
-    document.querySelectorAll('.card[data-cats]').forEach(function(c){
-      var show = k === 'all' || c.dataset.cats.split(' ').indexOf(k) !== -1;
-      c.hidden = !show; if (show) n++;
-    });
-    var cnt = document.getElementById('wcount');
-    if (cnt) cnt.textContent = (n < 10 ? '0' : '') + n + (n === 1 ? ' project' : ' projects');
-  }); });
-  // image lightbox
   var lb = document.getElementById('lb');
-  if (lb) {
-    var li = lb.querySelector('img');
-    var close = function(){ lb.hidden = true; li.removeAttribute('src'); document.body.style.overflow = ''; };
-    document.querySelectorAll('.imgs img').forEach(function(im){
-      im.addEventListener('click', function(){ li.src = im.currentSrc || im.src; li.alt = im.alt; lb.hidden = false; document.body.style.overflow = 'hidden'; });
-    });
-    lb.addEventListener('click', close);
-    document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape' && !lb.hidden) close(); });
-  }
-  // respect reduced motion for the SVG circuit (SMIL ignores CSS)
-  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    document.querySelectorAll('svg.track').forEach(function(s){ if (s.pauseAnimations) s.pauseAnimations(); });
-  }
+  if (!lb) return;
+  var li = lb.querySelector('img');
+  var close = function(){ lb.hidden = true; li.removeAttribute('src'); document.body.style.overflow = ''; };
+  document.querySelectorAll('.imgs img').forEach(function(im){
+    im.addEventListener('click', function(){ li.src = im.currentSrc || im.src; li.alt = im.alt; lb.hidden = false; document.body.style.overflow = 'hidden'; });
+  });
+  lb.addEventListener('click', close);
+  document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape' && !lb.hidden) close(); });
 })();
 </script>
 </body>
